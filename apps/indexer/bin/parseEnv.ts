@@ -1,16 +1,12 @@
 import { z, ZodError, ZodIntersection, ZodTypeAny } from "zod";
 
 const commonSchema = z.object({
-  NODE_ENV: z.enum(["local", "dev", "test", "prod"]).default("local"),
   SERVER_HOST: z.string().default("0.0.0.0"),
-  SERVER_PORT: z.coerce.number().positive().default(8888),
-  HASURA_ADMIN_SECRET: z.string().default("password"),
-  GRAPHQL_URL: z.string().default("http://localhost:8080/v1/graphql"),
-  PRIVATE_KEY: z
-    .string()
-    .default(
-      "9344dc8d6fbc1a788e75195e0e6e4c5910b200633baf9818d956c80580e82303bd7e14bda125a12268d3862688f2acf77d1a2d0e258540d041bf9722cabd4a14",
-    ),
+  SERVER_PORT: z.coerce.number().positive().default(8080),
+  HASURA_ADMIN_SECRET: z.string(),
+  GRAPHQL_URL: z.string().default("https://tub-graphql.primodium.ai/v1/graphql"),
+  ALCHEMY_RPC_URL: z.string().default("https://solana-mainnet.g.alchemy.com/v2/"),
+  HELIUS_WS_URL: z.string().default("wss://mainnet.helius-rpc.com/?api-key=)"),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
