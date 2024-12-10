@@ -53,3 +53,12 @@ export const AddClientEventMutation = graphql(`
     }
   }
 `);
+
+// Indexer
+export const InsertTradeHistoryManyMutation = graphql(`
+  mutation InsertTradeHistoryMany($trades: [api_trade_history_insert_input!]!) {
+    insert_api_trade_history(objects: $trades) {
+      affected_rows
+    }
+  }
+`);
