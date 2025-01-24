@@ -1,0 +1,46 @@
+{
+  "name": "tub",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm recursive run build",
+    "dev": "run-pty % pnpm dev:server % pnpm dev:redis % pnpm dev:ngrok:server",
+    "dev:fullstack": "pnpm run dev:teardown && run-pty % pnpm dev:server % pnpm dev:redis % pnpm dev:indexer % pnpm dev:db % pnpm dev:ngrok:gql % pnpm dev:ngrok:server",
+    "dev:dashboard": "run-pty % pnpm dev:web-dashboard % pnpm dev:server",
+    "dev:client": "pnpm --filter 'client' run dev",
+    "dev:server": "pnpm --filter 'server' run dev",
+    "dev:redis": "pnpm --filter 'server' run dev:redis",
+    "dev:db": "pnpm --filter 'gql' run dev",
+    "dev:db:ci": "pnpm --filter 'gql' run dev:ci",
+    "dev:teardown": "pnpm --filter 'gql' run teardown",
+    "dev:keeper": "pnpm --filter 'keeper' run start",
+    "dev:web-dashboard": "pnpm --filter 'dashboard' run dev",
+    "dev:indexer": "pnpm --filter 'indexer' run start",
+    "dev:ngrok:gql": "dotenvx run -f .env --quiet -- sh -c 'while ! ngrok http --url=$NGROK_GQL_URL 8080; do echo \"Retrying...\"; sleep 5; done'",
+    "dev:ngrok:server": "dotenvx run -f .env --quiet -- sh -c 'while ! ngrok http --url=$NGROK_SERVER_URL 8888; do echo \"Retrying...\"; sleep 5; done'",
+    "deploy": "pnpm --filter 'contracts' run deploy",
+    "format-swift": "swift-format --recursive -i 'apps/ios/Tub/Sources/**/*.swift'",
+    "test": "pnpm recursive --filter \"!./packages/contracts\" --filter \"!./apps/indexer\" run test",
+    "validator": "solana-test-validator --bpf-program metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s packages/contracts/dumps/token_metadata.so --bpf-program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA packages/contracts/dumps/token.so --reset",
+    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "sync:gql:ios": "pnpm --filter 'gql' run extract-mutations ../../apps/ios/graphql/mutations.graphql && pnpm --filter 'gql' run extract-queries ../../apps/ios/graphql/queries.graphql && pnpm --filter 'gql' run extract-subscriptions ../../apps/ios/graphql/subscriptions.graphql",
+    "prepare": "dotenvx run -f .env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] || { [ $(uname) = 'Darwin' ] && brew install swift-format; husky install; }'",
+    "generate-keypair": "tsx apps/server/bin/generate-keypair.ts"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "eslint --cache",
+    "*.{ts,tsx,css,md,mdx,sol}": "prettier --write",
+    "*.swift": "bash -c '[ \"$(uname)\" = \"Darwin\" ] && pnpm format-swift'"
+  },
+  "devDependencies": {
+    "husky": "^9.0.11",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.14.1",
+    "run-pty": "^5.0.0",
+    "tsx": "^3.12.6"
+  }
+}
