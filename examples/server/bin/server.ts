@@ -8,7 +8,7 @@ import fastify from "fastify";
 import { createClient as createGqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
 
 import { AppRouter, createAppRouter } from "../src/createAppRouter";
-import { Service } from "../src/Service";
+import { Service } from "../src/service";
 import { parseEnv } from "./parseEnv";
 
 config({ path: "../../.env" });
@@ -32,13 +32,13 @@ server.get("/", (_, res) => res.code(200).send("hello world"));
 
 export const start = async () => {
   try {
-    if (!env.GRAPHQL_URL && env.NODE_ENV === "production") {
-      throw new Error("GRAPHQL_URL is not set");
+    if (!env.HASURA_URL && env.NODE_ENV === "production") {
+      throw new Error("HASURA_URL is not set");
     }
 
     const gqlClient = (
       await createGqlClient({
-        url: env.NODE_ENV !== "production" ? "http://localhost:8090/v1/graphql" : env.GRAPHQL_URL,
+        url: env.NODE_ENV !== "production" ? "http://localhost:8090/v1/graphql" : `${env.HASURA_URL}/v1/graphql`,
         hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET,
       })
     ).db;

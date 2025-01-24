@@ -1,0 +1,49 @@
+graphql-engine:
+    image: hasura/graphql-engine:v2.44.0
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      # Postgres database to store Hasura metadata
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:<password>@<url>
+      # This env var can be used to add the above postgres database to Hasura as a data source
+      PG_DATABASE_URL: postgres://postgres:<password>@<url>
+      # Enable the console served by server
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      # Enable debugging mode; it is recommended to disable this in production
+      HASURA_GRAPHQL_DEV_MODE: false 
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: <secret>
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+      HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: 200
+      HASURA_GRAPHQL_METADATA_DEFAULTS: '{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:8081>
+      TIMESCALE_DATABASE_URL: postgres://tsdbadmin:<password>@<url>
+    depends_on:
+      data-connector-agent:
+        condition: service_healthy
+  data-connector-agent:
+    image: hasura/graphql-data-connector:v2.44.0
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      QUARKUS_LOG_LEVEL: ERROR # FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+      # https://quarkus.io/guides/opentelemetry#configuration-reference
+      QUARKUS_OPENTELEMETRY_ENABLED: "false"
+      # QUARKUS_OPENTELEMETRY_TRACER_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/athena/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+  graphql-cache:
+    image: ghcr.io/primodiumxyz/tub-hasura-cache:release-v0.5
+    restart: always
+    ports:
+      - "8090:8090"
+    environment:
+      REDIS_PASSWORD: <some_password> # this password is used to gatekeep access to the cache flush endpoint
+      REDIS_PORT: 8091
+    depends_on:
+      - graphql-engine

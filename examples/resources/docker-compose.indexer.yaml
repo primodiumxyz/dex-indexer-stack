@@ -1,0 +1,13 @@
+services:
+  tub-indexer:
+    image: ghcr.io/primodiumxyz/sdi-indexer@latest
+    restart: always
+    ulimits:
+      nofile: 65535 # Sets open file limit to prevent connection limits
+    environment:
+      # Fill in the following variables
+      - HASURA_URL=
+      - HASURA_ADMIN_SECRET=
+      - QUICKNODE_ENDPOINT=
+      - QUICKNODE_TOKEN=
+      - JUPITER_URL=

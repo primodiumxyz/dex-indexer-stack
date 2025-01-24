@@ -103,7 +103,7 @@ export const start = async () => {
 
       const gql = (
         await createGqlClient({
-          url: env.NODE_ENV !== "production" ? "http://localhost:8090/v1/graphql" : env.GRAPHQL_URL,
+          url: env.NODE_ENV !== "production" ? "http://localhost:8090/v1/graphql" : `${env.HASURA_URL}/v1/graphql`,
           hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET,
         })
       ).db;

@@ -1,14 +1,11 @@
 import { z, ZodError, ZodIntersection, ZodTypeAny } from "zod";
 
 const commonSchema = z.object({
-  NODE_ENV: z.enum(["local", "dev", "test", "production"]).default("local"),
-  GRAPHQL_URL: z.string().default("http://localhost:8090/v1/graphql"),
-  HASURA_ADMIN_SECRET: z.string().default("password"),
-  REDIS_HOST: z.string().default("localhost"),
-  REDIS_PORT: z.coerce.number().default(6379),
-  REDIS_PASSWORD: z.string().optional(),
+  NODE_ENV: z.enum(["local", "production"]).default("local"),
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(8888),
+  HASURA_URL: z.string().default("http://localhost:8090"),
+  HASURA_ADMIN_SECRET: z.string().default("password"),
 });
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
   schema?: TSchema,
