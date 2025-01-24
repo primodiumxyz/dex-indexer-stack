@@ -2,12 +2,14 @@
 import fastifyWebsocket from "@fastify/websocket";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
-import { createClient as createGqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
 import { config } from "dotenv";
 import fastify from "fastify";
-import { parseEnv } from "./parseEnv";
+
+import { createClient as createGqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
+
 import { AppRouter, createAppRouter } from "../src/createAppRouter";
 import { Service } from "../src/Service";
+import { parseEnv } from "./parseEnv";
 
 config({ path: "../../.env" });
 
@@ -60,7 +62,7 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async () => ({ service })
+      createContext: async () => ({ service }),
     });
 
     return server;

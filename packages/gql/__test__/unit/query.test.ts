@@ -1,4 +1,4 @@
-import { beforeAll, describe} from "vitest";
+import { beforeAll, describe } from "vitest";
 
 import { createClient, GqlClient } from "../../src/index";
 

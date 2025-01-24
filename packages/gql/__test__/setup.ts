@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, afterEach } from "vitest";
+import { afterAll, afterEach, beforeAll } from "vitest";
 
 beforeAll(async () => {
   const maxAttempts = 20;

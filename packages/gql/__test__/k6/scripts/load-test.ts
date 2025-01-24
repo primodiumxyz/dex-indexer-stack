@@ -1,8 +1,7 @@
-import http from "k6/http";
 import { check, sleep } from "k6";
-import { Gauge } from "k6/metrics";
 import { SharedArray } from "k6/data";
-import { Rate, Trend } from "k6/metrics";
+import http from "k6/http";
+import { Gauge, Rate, Trend } from "k6/metrics";
 
 const STRESS_STAGES = [
   { duration: "1m", target: 1000 }, // Ramp up to 1,000 users over 1 minute

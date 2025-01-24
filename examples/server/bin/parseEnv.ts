@@ -9,7 +9,6 @@ const commonSchema = z.object({
   REDIS_PASSWORD: z.string().optional(),
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(8888),
-
 });
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
   schema?: TSchema,

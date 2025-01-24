@@ -10,5 +10,4 @@ describe("mutation tests", () => {
   beforeAll(async () => {
     gql = await createClient({ url: "http://localhost:8090/v1/graphql", hasuraAdminSecret: "password" });
   });
-
 });

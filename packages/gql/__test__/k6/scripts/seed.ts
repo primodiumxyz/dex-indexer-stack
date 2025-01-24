@@ -1,6 +1,7 @@
-import { insertMockTradeHistory } from "../../lib/mock";
-import { createClientNoCache } from "../../lib/common";
 import fs from "fs";
+
+import { createClientNoCache } from "../../lib/common";
+import { insertMockTradeHistory } from "../../lib/mock";
 
 // Amount of trades to generate when seeding
 const TRADES_AMOUNT = 900_000; // ~500 trades per second

@@ -1,5 +1,7 @@
-import { GqlClient } from "../../src";
 import fs from "fs";
+
+import { GqlClient } from "../../src";
+
 type BeforeHook = () => Promise<void>;
 
 // Get all possible query functions from GqlClient

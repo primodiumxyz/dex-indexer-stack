@@ -6,6 +6,7 @@ import {
   splitLink,
 } from "@trpc/client";
 import { createWSClient, wsLink } from "@trpc/client/links/wsLink";
+
 import type { AppRouter } from "./createAppRouter";
 
 type CreateClientOptions = {

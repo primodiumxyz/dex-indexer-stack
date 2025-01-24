@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, it } from "vitest";
+
 import { benchmark, BenchmarkMetrics, logMetrics, writeMetricsToFile } from "../lib/benchmarks";
 import { clearCache, createClientCacheBypass, createClientCached, createClientNoCache } from "../lib/common";
 import { ITERATIONS } from "./config";

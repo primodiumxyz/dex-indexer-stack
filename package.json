@@ -10,14 +10,14 @@
     "dev:gql": "pnpm --filter 'gql' run dev",
     "dev:indexer": "pnpm --filter 'indexer' run start",
     "dev:teardown": "pnpm --filter 'gql' run teardown",
-    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "lint:fix": "prettier \"**/*.{js,ts}\" -w",
+    "lint": "prettier \"**/*.{js,ts}\" --check",
     "prepare": "dotenvx run -f .env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] || { [ $(uname) = 'Darwin' ] && brew install swift-format; husky install; }'",
     "test": "pnpm recursive run test"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --cache",
-    "*.{ts,tsx,css,md,mdx,sol}": "prettier --write"
+    "*.{ts,tsx,css,md,mdx}": "prettier --write"
   },
   "devDependencies": {
     "husky": "^9.0.11",

@@ -1,6 +1,6 @@
+import cors from "@fastify/cors";
 import Fastify from "fastify";
-import { cors } from "@fastify/cors";
-import { print, parse } from "graphql";
+import { parse, print } from "graphql";
 import { createClient } from "redis";
 
 const fastify = Fastify({

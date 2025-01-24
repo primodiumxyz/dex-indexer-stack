@@ -1,4 +1,5 @@
 import fs from "fs";
+
 import { createClient } from "../../../src/index";
 
 const fetchTokens = async () => {
