@@ -19,17 +19,14 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 # Copy .tsconfigs/bundler/dom/library-monorepo.json and reproduce correct path
 COPY .tsconfigs/bundler/dom/library-monorepo.json /app/.tsconfigs/bundler/dom/library-monorepo.json
 
-# Copy the indexer app
-COPY apps/indexer ./apps/indexer
-
-# Copy any shared packages
+# Copy all packages
 COPY packages ./packages
 
 # Install dependencies without dev dependencies and skip prepare scripts
 RUN pnpm install --frozen-lockfile
 
 # Set working directory to the indexer app
-WORKDIR /app/apps/indexer
+WORKDIR /app/packages/indexer
 
 # Command to run the indexer
 CMD ["pnpm", "start"]

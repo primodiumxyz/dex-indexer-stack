@@ -4,13 +4,12 @@ on:
   push:
     branches:
       - main
-      - release/*
   workflow_call:
 
 env:
   REGISTRY: ghcr.io
   ORG: primodiumxyz
-  IMAGE_NAME: tub-hasura-cache
+  IMAGE_NAME: sdi-hasura-cache
 
 jobs:
   build-and-push-image:

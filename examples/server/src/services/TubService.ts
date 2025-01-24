@@ -5,7 +5,7 @@ import { GqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { env } from "../../bin/tub-server";
 import { TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { Config, ConfigService } from "../services/ConfigService";
+import { Config, ConfigService } from "./ConfigService";
 import {
   AppDwellTimeEvent,
   LoadingTimeEvent,

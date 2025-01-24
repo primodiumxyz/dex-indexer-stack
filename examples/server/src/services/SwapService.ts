@@ -1,7 +1,7 @@
 import { QuoteGetRequest } from "@jup-ag/api";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { Subject, interval, switchMap } from "rxjs";
-import { FeeService } from "../services/FeeService";
+import { FeeService } from "./FeeService";
 import {
   ActiveSwapRequest,
   PrebuildSwapResponse,
