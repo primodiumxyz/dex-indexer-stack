@@ -1,4 +1,4 @@
-import { GqlClient } from "@primodiumxyz/solana-dex-indexer";
+import { GqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -10,16 +10,12 @@ export class Service {
    * Creates a new instance of Service
    * @param gqlClient - GraphQL client for database operations
    */
-  private constructor(
-    private readonly gqlClient: GqlClient["db"],
-  ) {}
+  private constructor(private readonly gqlClient: GqlClient["db"]) {}
 
   /**
    * Factory method to create a fully initialized TubService
    */
-  static async create(
-    gqlClient: GqlClient["db"],
-  ): Promise<Service> {
+  static async create(gqlClient: GqlClient["db"]): Promise<Service> {
     const service = new Service(gqlClient);
     return await service.initialize();
   }
@@ -51,5 +47,4 @@ export class Service {
       }
     }, this.REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS * 1000);
   }
-
 }

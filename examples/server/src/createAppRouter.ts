@@ -1,5 +1,5 @@
 import { initTRPC } from "@trpc/server";
-import { Service } from "./Service";
+import { Service } from "./service";
 
 export type AppContext = {
   service: Service;

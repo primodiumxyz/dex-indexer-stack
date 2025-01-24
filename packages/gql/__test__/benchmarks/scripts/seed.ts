@@ -1,6 +1,6 @@
 import { createClientNoCache } from "../../lib/common";
-import { DEFAULT_TRADES_AMOUNT, DEFAULT_START_DATE } from "../config";
 import { insertMockTradeHistory } from "../../lib/mock";
+import { DEFAULT_START_DATE, DEFAULT_TRADES_AMOUNT } from "../config";
 
 const seed = async () => {
   const client = await createClientNoCache();

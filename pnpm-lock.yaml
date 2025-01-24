@@ -255,6 +255,9 @@ importers:
         specifier: ^8.18.0
         version: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     devDependencies:
+      '@ianvs/prettier-plugin-sort-imports':
+        specifier: ^4.3.0
+        version: 4.4.1(prettier@3.4.2)
       '@types/k6':
         specifier: ^0.54.2
         version: 0.54.2
