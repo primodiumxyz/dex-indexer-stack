@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 import { Provider as UrqlProvider } from "urql";
 
-import { createClient as createGqlClient } from "@tub/gql";
+import { createClient as createGqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
 import { Tracker } from "@/components/tracker";
-import { ServerProvider } from "@/providers/server-provider";
 
 import "@/App.css";
 
@@ -15,9 +14,7 @@ function App() {
 
   return (
     <UrqlProvider value={client}>
-      <ServerProvider>
         <Tracker />
-      </ServerProvider>
     </UrqlProvider>
   );
 }

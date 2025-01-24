@@ -1,10 +1,4 @@
-import { Keypair } from "@solana/web3.js";
 import { createClient } from "../../src/index";
-
-export function createWallet() {
-  const wallet = Keypair.generate();
-  return wallet.publicKey.toString();
-}
 
 export const toPgComposite = (obj: Record<string, unknown>): string => {
   const values = Object.values(obj).map((val) => {

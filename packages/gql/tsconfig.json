@@ -1,8 +1,5 @@
 {
   "compilerOptions": {
-    "paths": {
-      "@core/*": ["./src/*"]
-    },
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "plugins": [

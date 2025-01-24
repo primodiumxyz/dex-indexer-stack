@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { CandlestickData, Time } from "lightweight-charts";
 import { useSubscription } from "urql";
 
-import { subscriptions } from "@tub/gql";
+import { subscriptions } from "@primodiumxyz/solana-dex-indexer-gql";
 import { Token } from "@/lib/types";
 
 export const useTokenCandles = (

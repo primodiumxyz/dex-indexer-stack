@@ -1,10 +1,25 @@
 import Fastify from "fastify";
-import { createClient } from "redis";
+import { cors } from "@fastify/cors";
 import { print, parse } from "graphql";
+import { createClient } from "redis";
 
 const fastify = Fastify({
   logger: true,
 });
+
+// Add explicit CORS configuration if running locally
+const dev = process.env.NODE_ENV === "local";
+if (dev) {
+  await fastify.register(cors, {
+    origin: [
+      "http://localhost:5173", // Vite dev server
+      "http://localhost:8888", // Server
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-cache-bypass", "x-cache-time", "x-redis-secret"],
+    credentials: true,
+  });
+}
 
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD || "password";
 

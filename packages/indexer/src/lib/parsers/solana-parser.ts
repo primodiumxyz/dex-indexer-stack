@@ -1,6 +1,5 @@
 // Copied and cleaned up from @shyft-to/solana-tx-parser-public
 // Also to avoid errors probably due to cyclical dependencies: "TypeError: (0 , codecs_strings_1.getStringCodec) is not a function"
-// - replaced BN with BigInt (BN not compatible with node)
 
 import { BorshInstructionCoder, Idl } from "@coral-xyz/anchor";
 import {

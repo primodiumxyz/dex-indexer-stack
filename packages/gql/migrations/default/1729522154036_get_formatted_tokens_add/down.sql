@@ -1,1 +1,0 @@
-DROP FUNCTION get_formatted_tokens(timestamptz);

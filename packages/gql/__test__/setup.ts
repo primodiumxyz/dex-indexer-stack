@@ -33,7 +33,7 @@ beforeAll(async () => {
     }
   }
 
-  throw new Error("Hasura service is not available. Please ensure it's running with `pnpm hasura-up` and try again.");
+  throw new Error("Hasura service is not available. Please ensure it's running with `pnpm dev` and try again.");
 }, 1000 * 60);
 
 afterAll(() => {

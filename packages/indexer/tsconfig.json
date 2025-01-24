@@ -11,9 +11,6 @@
       "@bin/*": [
         "./bin/*"
       ],
-      "@core/*": [
-        "../../packages/core/src/*"
-      ],
     }
   },
   "include": [

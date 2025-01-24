@@ -19,7 +19,7 @@
     "^(react/(.*)$)|^(react$)",
     "<THIRD_PARTY_MODULES>",
     "",
-    "^@tub/(.*)$",
+    "^@primodiumxyz/(.*)$",
     "^@/(.*)$",
     "",
     "^[./]"

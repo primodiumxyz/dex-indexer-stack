@@ -2,7 +2,7 @@
 import { Connection, ParsedAccountData, PublicKey } from "@solana/web3.js";
 import { config } from "dotenv";
 
-import { GqlClient } from "@tub/gql";
+import { GqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
 import { parseEnv } from "@bin/parseEnv";
 import { PUMP_FUN_AUTHORITY, WRAPPED_SOL_MINT } from "@/lib/constants";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";

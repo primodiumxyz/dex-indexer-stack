@@ -4,11 +4,9 @@
     "moduleResolution": "bundler",
     "paths": {
       "@/*": ["./src/*"],
-      "@bin/*": ["./bin/*"],
-      "@core/*": ["../../packages/core/src/*"],
-      "@solana/spl-token": ["./node_modules/@solana/spl-token"]
+      "@bin/*": ["./bin/*"]
     }
   },
-  "include": ["**/*.ts", "src/constants"],
+  "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

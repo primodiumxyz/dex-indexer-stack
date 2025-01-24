@@ -1,1 +1,0 @@
-DROP VIEW IF EXISTS "public"."formatted_tokens";
