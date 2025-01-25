@@ -20,7 +20,7 @@ jobs:
       - name: Debug prepare script
         run: |
           set -x
-          sh -c '[ "$NODE_ENV" = production ] || { [ $(uname) = Darwin ] && husky install; }'
+          sh -c '[ "$NODE_ENV" = production ] || { [ $(uname) = Darwin ] && husky install; };'
 
       - name: pnpm install
         run: pnpm install --frozen-lockfile
