@@ -15,7 +15,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "NODE_ENV=production" > .env
+          echo "NODE_ENV=test" > .env
 
       - name: pnpm install
         run: pnpm install --frozen-lockfile
@@ -24,7 +24,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install docker-compose
 
       - name: Run Hasura DB
-        run: pnpm dev:db:ci
+        run: pnpm dev:gql
 
       - name: Run Tests
         run: pnpm test
