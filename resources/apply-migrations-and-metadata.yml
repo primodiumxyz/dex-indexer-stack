@@ -1,10 +1,9 @@
 name: Dry Run and Apply Migrations and Metadata to Hasura Dev Instance
 
-# Uncomment this to run on push to main
-# on:
-#   push:
-#     branches:
-#       - main
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   apply-migrations-and-metadata:
