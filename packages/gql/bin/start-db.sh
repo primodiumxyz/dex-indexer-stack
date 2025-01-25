@@ -12,7 +12,7 @@ done
 
 # Start services first
 if [ "$CI_MODE" = true ]; then
-  docker-compose up -d &
+  docker-compose up &
 else
   docker-compose up &
 fi
