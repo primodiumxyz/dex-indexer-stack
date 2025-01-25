@@ -44,12 +44,9 @@ for ((i=1; i<=$RETRIES; i++)); do
   if [ "$TIMESCALE_HEALTHY" = true ] && [ "$HASURA_HEALTHY" = true ]; then
     echo "All services are healthy!"
 
-    echo "Applying Hasura metadata..."
-    pnpm db:local:seed-apply
-
     # Start consoles after everything is set up
     echo "Starting Hasura console..."
-    pnpm db:local:console &
+    pnpm local:console &
 
     break
   else

@@ -7,12 +7,12 @@
     "dev:examples": "run-pty % pnpm dev:examples:server % pnpm dev:examples:dashboard",
     "dev:examples:dashboard": "pnpm --filter 'dashboard' run dev",
     "dev:examples:server": "pnpm --filter 'server' run dev",
-    "dev:gql": "pnpm --filter 'gql' run dev",
-    "dev:indexer": "pnpm --filter 'indexer' run start",
-    "dev:teardown": "pnpm --filter 'gql' run teardown",
+    "dev:gql": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run dev",
+    "dev:indexer": "pnpm --filter '@primodiumxyz/solana-dex-indexer' run start",
+    "dev:teardown": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run teardown",
     "lint:fix": "prettier \"**/*.{js,ts}\" -w",
     "lint": "prettier \"**/*.{js,ts}\" --check",
-    "prepare": "dotenvx run -f .env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] || { [ $(uname) = 'Darwin' ] && brew install swift-format; husky install; }'",
+    "prepare": "dotenvx run -f .env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] || { [ $(uname) = 'Darwin' ] && husky install; }'",
     "test": "pnpm recursive run test"
   },
   "lint-staged": {

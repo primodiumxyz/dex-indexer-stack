@@ -8,8 +8,8 @@
       use_prepared_statements: false
   customization:
     naming_convention: hasura-default
-  tables: "!include default/tables/tables.yaml"
-  functions: "!include default/functions/functions.yaml"
+  tables: []
+  functions: []
 - name: timescaledb
   kind: postgres
   configuration:
