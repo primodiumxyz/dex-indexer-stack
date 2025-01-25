@@ -23,11 +23,7 @@ jobs:
         run: pnpm dev:db:ci
 
       - name: Run Tests
-        run: QUICKNODE_ENDPOINT=${{ secrets.QUICKNODE_ENDPOINT }} QUICKNODE_TOKEN=${{ secrets.QUICKNODE_TOKEN }} JUPITER_URL=${{ secrets.JUPITER_URL }} pnpm test
-        env:
-          QUICKNODE_ENDPOINT: ${{ secrets.QUICKNODE_ENDPOINT }}
-          QUICKNODE_TOKEN: ${{ secrets.QUICKNODE_TOKEN }}
-          JUPITER_URL: ${{ secrets.JUPITER_URL }}
+        run: pnpm test
 
       - name: Teardown
         run: pnpm dev:teardown
