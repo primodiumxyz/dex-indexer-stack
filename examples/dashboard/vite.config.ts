@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@gql": path.resolve(__dirname, "../../packages/gql/src"),
     },
   },
   envPrefix: "VITE_",

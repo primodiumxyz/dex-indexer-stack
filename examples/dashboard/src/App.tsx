@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Provider as UrqlProvider } from "urql";
 
-import { createClient as createGqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
+import { createClient as createGqlClient } from "@gql/index";
 import { Tracker } from "@/components/tracker";
 
 import "@/App.css";

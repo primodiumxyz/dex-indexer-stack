@@ -22,7 +22,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@gql/*": ["./../../packages/gql/src/*"]
     }
   },
   "include": ["src"],

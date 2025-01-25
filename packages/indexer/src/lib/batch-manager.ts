@@ -1,6 +1,6 @@
 import { Connection } from "@solana/web3.js";
 
-import { GqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
+import { GqlClient } from "@gql/index";
 import { MAX_BATCH_SIZE, MIN_BATCH_FREQUENCY, PROCESSING_MODE, ProcessingMode } from "@/lib/constants";
 import { Swap } from "@/lib/types";
 import { fetchPriceAndMetadata, upsertTrades } from "@/lib/utils";

@@ -2,7 +2,7 @@
 import Client, { CommitmentLevel, SubscribeRequest, SubscribeUpdate } from "@triton-one/yellowstone-grpc";
 import { config } from "dotenv";
 
-import { createClient as createGqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
+import { createClient as createGqlClient } from "@gql/index";
 import { parseEnv } from "@bin/parseEnv";
 import { BatchManager } from "@/lib/batch-manager";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";

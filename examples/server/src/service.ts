@@ -1,4 +1,4 @@
-import { GqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
+import { GqlClient } from "@gql/index";
 
 /**
  * Service class handling token trading, swaps, and user operations

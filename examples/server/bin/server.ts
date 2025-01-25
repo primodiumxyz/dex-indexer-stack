@@ -5,7 +5,7 @@ import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { config } from "dotenv";
 import fastify from "fastify";
 
-import { createClient as createGqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
+import { createClient as createGqlClient } from "@gql/index";
 
 import { AppRouter, createAppRouter } from "../src/createAppRouter";
 import { Service } from "../src/service";

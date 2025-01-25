@@ -2,16 +2,33 @@
   "name": "@primodiumxyz/solana-dex-indexer-gql",
   "version": "0.0.1",
   "description": "GraphQL client for TypeScript with Hasura & Timescale support, for indexing Solana DEX trades and tokens.",
-  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primodiumxyz/solana-dex-indexer-stack",
+    "directory": "./packages/gql"
+  },
+  "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "local:gql": "./bin/start-db.sh",
+    "local:gql:ci": "./bin/start-db.sh --ci"
   },
   "files": [
-    "src"
+    "bin",
+    "dist",
+    "Dockerfile",
+    "docker-compose.yaml",
+    ".dockerignore"
   ],
   "scripts": {
     "benchmark": "pnpm tsx ./__test__/benchmarks/scripts/seed.ts && vitest run benchmarks",
+    "build": "tsup",
+    "clean": "rm -rf dist",
     "dev": "./bin/start-db.sh",
     "dev:ci": "./bin/start-db.sh --ci",
     "generate:types": "pnpm gql-tada generate-output",
@@ -34,8 +51,6 @@
     "test:coverage": "vitest run unit --coverage",
     "test:watch": "vitest unit"
   },
-  "keywords": [],
-  "license": "MIT",
   "dependencies": {
     "@dotenvx/dotenvx": "^1.14.1",
     "@fastify/cors": "^8.3.0",
@@ -57,6 +72,7 @@
     "@vitest/utils": "^2.1.1",
     "hasura-cli": "2.36.1",
     "prettier": "^3.3.3",
+    "tsup": "^8.3.6",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "0.31.4",
     "yaml": "^2.6.1"
