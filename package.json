@@ -6,7 +6,7 @@
     "dev": "pnpm run dev:teardown && run-pty % pnpm dev:gql % pnpm dev:indexer",
     "dev:examples": "run-pty % pnpm dev:examples:server % pnpm dev:examples:dashboard",
     "dev:examples:dashboard": "pnpm --filter 'dashboard' run dev",
-    "dev:examples:server": "pnpm --filter 'server' run dev",
+    "dev:examples:server": "pnpm --filter 'server' run start",
     "dev:gql": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run dev",
     "dev:indexer": "pnpm --filter '@primodiumxyz/solana-dex-indexer' run start",
     "dev:teardown": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run teardown",
