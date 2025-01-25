@@ -4,7 +4,7 @@ import { GqlClient } from "@primodiumxyz/solana-dex-indexer-gql";
  * Service class handling token trading, swaps, and user operations
  */
 export class Service {
-  private readonly REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS = 5;
+  private readonly REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS = 2;
 
   /**
    * Creates a new instance of Service
