@@ -18,7 +18,7 @@ jobs:
           echo "NODE_ENV=test" > .env
 
       - name: pnpm install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --force
 
       - name: Install docker compose
         run: sudo apt-get update && sudo apt-get install docker-compose
