@@ -8,6 +8,7 @@
     "dev:examples:dashboard": "pnpm --filter 'dashboard' run dev",
     "dev:examples:server": "pnpm --filter 'server' run start",
     "dev:gql": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run dev",
+    "dev:gql:ci": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run dev:ci",
     "dev:indexer": "pnpm --filter '@primodiumxyz/solana-dex-indexer' run start",
     "dev:teardown": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run teardown",
     "lint:fix": "prettier \"**/*.{js,ts}\" -w",
