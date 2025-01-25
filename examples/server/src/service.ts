@@ -42,6 +42,7 @@ export class Service {
     setInterval(async () => {
       try {
         await this.refreshTokenRollingStats30Min();
+        console.log("Refreshed token rolling stats 30min");
       } catch (error) {
         console.error("Failed to refresh token rolling stats 30min", error);
       }
