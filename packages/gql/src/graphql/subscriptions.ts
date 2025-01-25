@@ -1,6 +1,5 @@
 import { graphql } from "./init";
 
-// Dashboard
 export const GetTopTokensByVolumeSubscription = graphql(`
   subscription SubTopTokensByVolume {
     token_rolling_stats_30min(
@@ -9,14 +8,21 @@ export const GetTopTokensByVolumeSubscription = graphql(`
       limit: 50
     ) {
       mint
+      name
+      symbol
+      description
+      decimals
+      supply
+      image_uri
+      external_url
+      is_pump_token
       volume_usd_30m
       trades_30m
       price_change_pct_30m
+      volume_usd_1m
+      trades_1m
+      price_change_pct_1m
       latest_price_usd
-      name
-      image_uri
-      symbol
-      supply
     }
   }
 `);
@@ -27,15 +33,6 @@ export const GetTokenPricesSinceSubscription = graphql(`
       where: { token_mint: { _eq: $token }, created_at: { _gte: $since } }
       order_by: { created_at: asc }
     ) {
-      token_price_usd
-      created_at
-    }
-  }
-`);
-
-export const GetRecentTokenPriceSubscription = graphql(`
-  subscription SubRecentTokenPrice($token: String!) {
-    api_trade_history(where: { token_mint: { _eq: $token } }, order_by: { created_at: desc }, limit: 1) {
       token_price_usd
       created_at
     }
