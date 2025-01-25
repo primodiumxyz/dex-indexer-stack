@@ -13,7 +13,7 @@
   "scripts": {
     "benchmark": "pnpm tsx ./__test__/benchmarks/scripts/seed.ts && vitest run benchmarks",
     "dev": "./bin/start-db.sh",
-    "dev:ci": "./bin/start-db-ci.sh",
+    "dev:ci": "./bin/start-db.sh --ci",
     "generate:types": "pnpm gql-tada generate-output",
     "k6:local": "./__test__/k6/scripts/run-k6.sh -e local",
     "k6:local:skip-seed": "./__test__/k6/scripts/run-k6.sh -e local -s",

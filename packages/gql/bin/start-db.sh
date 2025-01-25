@@ -1,7 +1,21 @@
 #!/bin/bash
 
+# Parse command line arguments
+CI_MODE=false
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --ci) CI_MODE=true ;;
+    *) echo "Unknown parameter: $1"; exit 1 ;;
+  esac
+  shift
+done
+
 # Start services first
-docker-compose up &
+if [ "$CI_MODE" = true ]; then
+  docker-compose up  &
+else
+  docker-compose up &
+fi
 
 # Store the process ID of the background docker-compose up command
 COMPOSE_PID=$!
@@ -57,9 +71,11 @@ for ((i=1; i<=$RETRIES; i++)); do
   if [ "$TIMESCALE_HEALTHY" = true ] && [ "$HASURA_HEALTHY" = true ] && [ "$CACHE_HEALTHY" = true ]; then
     echo "All services are healthy!"
 
-    # Start consoles after everything is set up
-    echo "Starting Hasura console..."
-    pnpm local:console &
+    # Start console only in non-CI mode
+    if [ "$CI_MODE" = false ]; then
+      echo "Starting Hasura console..."
+      pnpm local:console &
+    fi
 
     break
   else

@@ -29,7 +29,7 @@ COPY .tsconfigs/bundler/dom/library-monorepo.json /app/.tsconfigs/bundler/dom/li
 COPY packages/gql ./packages/gql
 
 # Install dependencies without dev dependencies
-RUN pnpm install --frozen-lockfile --filter @tub/gql
+RUN pnpm install --frozen-lockfile --filter @primodiumxyz/solana-dex-indexer-gql
 
 WORKDIR /app/packages/gql
 
