@@ -12,7 +12,7 @@
     "dev:teardown": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run teardown",
     "lint:fix": "prettier \"**/*.{js,ts}\" -w",
     "lint": "prettier \"**/*.{js,ts}\" --check",
-    "prepare": "dotenvx run -f .env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] || { [ $(uname) = 'Darwin' ] && husky install; }'",
+    "prepare": "dotenvx run -f .env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] || husky install'",
     "test": "pnpm recursive run test"
   },
   "lint-staged": {
