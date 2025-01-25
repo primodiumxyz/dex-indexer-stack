@@ -1,5 +1,5 @@
 name: Setup prerequisites
-description: Setup pnpm, Node.js, and Redis
+description: Setup pnpm and Node.js
 runs:
   using: composite
   steps:
