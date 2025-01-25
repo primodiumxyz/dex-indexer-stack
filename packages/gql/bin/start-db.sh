@@ -21,8 +21,8 @@ fi
 COMPOSE_PID=$!
 
 # Define the health check endpoints
-HASURA_HEALTH_CHECK_URL="http://localhost:8080/healthz?strict=true"
-CACHE_HEALTH_CHECK_URL="http://localhost:8090/healthz?strict=true"
+# This url reaches Hasura through the cache server so it verifies both health
+HASURA_HEALTH_CHECK_URL="http://localhost:8090/healthz?strict=true"
 TIMESCALE_HEALTH_CHECK="docker exec timescaledb pg_isready -U tsdbadmin -d indexer"
 
 # Define the number of retries and delay between checks
@@ -34,13 +34,6 @@ check_hasura_health() {
   RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $HASURA_HEALTH_CHECK_URL)
   [ "$RESPONSE" -eq 200 ]
 }
-
-# Function to check cache server health
-check_cache_health() {
-  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $CACHE_HEALTH_CHECK_URL)
-  [ "$RESPONSE" -eq 200 ]
-}
-
 # Function to check TimescaleDB health
 check_timescale_health() {
   $TIMESCALE_HEALTH_CHECK > /dev/null 2>&1
@@ -51,7 +44,6 @@ echo "Waiting for TimescaleDB & Hasura to be healthy..."
 for ((i=1; i<=$RETRIES; i++)); do
   TIMESCALE_HEALTHY=false
   HASURA_HEALTHY=false
-  CACHE_HEALTHY=false
 
   if check_timescale_health; then
     TIMESCALE_HEALTHY=true
@@ -63,12 +55,7 @@ for ((i=1; i<=$RETRIES; i++)); do
     echo "Hasura is healthy!"
   fi
 
-  if check_cache_health; then
-    CACHE_HEALTHY=true
-    echo "Cache server is healthy!"
-  fi
-
-  if [ "$TIMESCALE_HEALTHY" = true ] && [ "$HASURA_HEALTHY" = true ] && [ "$CACHE_HEALTHY" = true ]; then
+  if [ "$TIMESCALE_HEALTHY" = true ] && [ "$HASURA_HEALTHY" = true ]; then
     echo "All services are healthy!"
 
     # Start console only in non-CI mode
