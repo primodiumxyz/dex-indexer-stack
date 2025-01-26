@@ -106,6 +106,8 @@ export const GetTokenCandlesSinceQuery = graphql(`
       close_price_usd
       high_price_usd
       low_price_usd
+      volume_usd
+      has_trades
     }
   }
 `);

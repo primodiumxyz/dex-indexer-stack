@@ -127,3 +127,78 @@ const getLetterIndex = (index: number): string => {
 
   return columnName;
 };
+
+export const getCandlesFromTrades = (trades: Trade[], since: Date) => {
+  // Generate all minute buckets from start to now
+  const now = new Date(Math.floor(Date.now() / 60000) * 60000);
+  const buckets: Date[] = [];
+  for (let t = since.getTime(); t <= now.getTime(); t += 60000) {
+    buckets.push(new Date(t));
+  }
+
+  // First, get all buckets with their trades
+  const rawCandles = buckets.map((bucket) => {
+    const bucketTrades = trades.filter((t) => {
+      const tradeTime = t.createdAt.getTime();
+      return tradeTime >= bucket.getTime() && tradeTime < bucket.getTime() + 60000;
+    });
+
+    if (bucketTrades.length === 0) {
+      return {
+        bucket,
+        open_price_usd: null,
+        close_price_usd: null,
+        high_price_usd: null,
+        low_price_usd: null,
+        volume_usd: 0,
+        has_trades: false,
+      };
+    }
+
+    // Sort trades by timestamp
+    bucketTrades.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+    return {
+      bucket,
+      // We'll fill open price later
+      open_price_usd: null as number | null,
+      close_price_usd: bucketTrades[bucketTrades.length - 1].priceUsd,
+      high_price_usd: Math.max(...bucketTrades.map((t) => t.priceUsd)),
+      low_price_usd: Math.min(...bucketTrades.map((t) => t.priceUsd)),
+      volume_usd: bucketTrades.reduce((sum, t) => sum + t.volumeUsd, 0),
+      has_trades: true,
+    };
+  });
+
+  // Find the first bucket with trades
+  const firstTradeCandle = rawCandles.find((c) => c.has_trades);
+  if (!firstTradeCandle) return [];
+
+  // Fill in empty buckets with the last known price
+  let lastKnownPrice: number | null = null;
+  for (const candle of rawCandles) {
+    if (candle.has_trades) {
+      lastKnownPrice = candle.close_price_usd;
+    } else if (lastKnownPrice !== null) {
+      candle.close_price_usd = lastKnownPrice;
+      candle.high_price_usd = lastKnownPrice;
+      candle.low_price_usd = lastKnownPrice;
+    }
+  }
+
+  // Now calculate open prices using LAG
+  for (let i = 0; i < rawCandles.length; i++) {
+    const candle = rawCandles[i];
+
+    if (i === 0 || candle.bucket.getTime() === firstTradeCandle.bucket.getTime()) {
+      // First bucket or first trade bucket: open = close
+      candle.open_price_usd = candle.close_price_usd;
+    } else {
+      // All other buckets: open = previous bucket's close
+      candle.open_price_usd = rawCandles[i - 1].close_price_usd;
+    }
+  }
+
+  // Sort both arrays by bucket time for comparison
+  return rawCandles.sort((a, b) => b.bucket.getTime() - a.bucket.getTime());
+};
