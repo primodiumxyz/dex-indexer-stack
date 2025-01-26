@@ -108,8 +108,8 @@ const getRandomMint = () => {
 // between 0.000000000001 and 10 (18 decimal places)
 const getRandomPrice = () => Number((Math.random() * 10 + 0.000000000001).toFixed(18));
 
-// Returns a random number between 0.001 and 10,000 (18 decimal places)
-const getRandomVolume = () => Number((Math.random() * 10000 + 0.001).toFixed(18));
+// Returns a random number between 0.001 and 100,000 (18 decimal places)
+const getRandomVolume = () => Number((Math.random() * 100000 + 0.001).toFixed(18));
 
 // Returns a random date between from and now
 const getRandomDate = (from: Date) =>
