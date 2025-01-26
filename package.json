@@ -2,7 +2,7 @@
   "name": "@primodiumxyz/solana-dex-indexer-stack",
   "type": "module",
   "scripts": {
-    "build": "pnpm recursive run build",
+    "build": "pnpm --filter '@primodiumxyz/solana-dex-indexer-gql' run build && pnpm --filter '@primodiumxyz/solana-dex-indexer' run build",
     "dev": "pnpm run dev:teardown && run-pty % pnpm dev:gql % pnpm dev:indexer",
     "dev:examples": "run-pty % pnpm dev:examples:server % pnpm dev:examples:dashboard",
     "dev:examples:dashboard": "pnpm --filter 'dashboard' run dev",
