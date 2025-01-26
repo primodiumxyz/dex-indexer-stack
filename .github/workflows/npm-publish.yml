@@ -1,12 +1,9 @@
-name: NPM Publish
+name: NPM Build and Publish
 
-on:
-  push:
-    branches:
-      # - main ## TODO: uncomment when ready to release
+on: [push]
 
 jobs:
-  build:
+  build-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,6 +23,7 @@ jobs:
         uses: ./.github/actions/build
 
       - name: Release
+        if: github.ref == 'refs/heads/main' # Only run release on main branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
