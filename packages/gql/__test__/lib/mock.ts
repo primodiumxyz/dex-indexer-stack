@@ -1,6 +1,34 @@
 import { GqlClient } from "../../src/index";
 import { toPgComposite } from "./common";
 
+export type Token = {
+  mint: string;
+  name: string;
+  symbol: string;
+  description: string;
+  imageUri: string;
+  externalUrl: string;
+  supply: number;
+  decimals: string;
+  isPumpToken: boolean;
+};
+
+export type Trade = Token & {
+  volumeUsd: number;
+  priceUsd: number;
+  createdAt: Date;
+};
+
+export type TokenWithStats = Token & {
+  volumeUsd30m: number;
+  trades30m: number;
+  priceChangePct30m: number;
+  volumeUsd1m: number;
+  trades1m: number;
+  priceChangePct1m: number;
+  latestPriceUsd: number;
+};
+
 interface InsertMockTradeHistoryOptions {
   count: number;
   from: Date;
@@ -8,10 +36,13 @@ interface InsertMockTradeHistoryOptions {
   onProgress?: (inserted: number, total: number) => void;
 }
 
-export const insertMockTradeHistory = async (gql: GqlClient, options: InsertMockTradeHistoryOptions): Promise<void> => {
+export const insertMockTradeHistory = async (
+  gql: GqlClient,
+  options: InsertMockTradeHistoryOptions,
+): Promise<{ tokens: Token[]; trades: Trade[] }> => {
   const { count, from, batchSize = 1000, onProgress } = options;
   const tokenMintCount = Math.ceil(count * 0.05);
-  const tokens = Array.from({ length: tokenMintCount }, (_, i) => ({
+  const tokens: Token[] = Array.from({ length: tokenMintCount }, (_, i) => ({
     mint: getRandomMint(),
     name: `Token ${getLetterIndex(i)}`.slice(0, 255),
     symbol: `T${getLetterIndex(i)}`.slice(0, 10),
@@ -23,32 +54,38 @@ export const insertMockTradeHistory = async (gql: GqlClient, options: InsertMock
     isPumpToken: true,
   }));
 
+  const trades = Array.from({ length: count }, () => {
+    const token = tokens[Math.floor(Math.random() * tokens.length)];
+
+    return {
+      ...token,
+      volumeUsd: getRandomVolume(),
+      priceUsd: getRandomPrice(),
+      createdAt: getRandomDate(from),
+    };
+  });
+
   const batches = Math.ceil(count / batchSize);
   let inserted = 0;
 
   for (let i = 0; i < batches; i++) {
-    const batchCount = Math.min(batchSize, count - i * batchSize);
     const res = await gql.db.InsertTradeHistoryManyMutation({
-      trades: Array.from({ length: batchCount }, () => {
-        const token = tokens[Math.floor(Math.random() * tokens.length)];
-
-        return {
-          token_mint: token.mint,
-          volume_usd: getRandomVolume().toString(),
-          token_price_usd: getRandomPrice().toString(),
-          created_at: getRandomDate(from),
-          token_metadata: toPgComposite({
-            name: token.name,
-            symbol: token.symbol,
-            description: token.description,
-            image_uri: token.imageUri,
-            external_url: token.externalUrl,
-            decimals: token.decimals,
-            supply: token.supply,
-            is_pump_token: token.isPumpToken,
-          }),
-        };
-      }),
+      trades: trades.slice(i * batchSize, (i + 1) * batchSize).map((t) => ({
+        token_mint: t.mint,
+        volume_usd: t.volumeUsd.toString(),
+        token_price_usd: t.priceUsd.toString(),
+        created_at: t.createdAt,
+        token_metadata: toPgComposite({
+          name: t.name,
+          symbol: t.symbol,
+          description: t.description,
+          image_uri: t.imageUri,
+          external_url: t.externalUrl,
+          decimals: t.decimals,
+          supply: t.supply,
+          is_pump_token: t.isPumpToken,
+        }),
+      })),
     });
 
     if (res.error) throw new Error(res.error.message);
@@ -59,6 +96,8 @@ export const insertMockTradeHistory = async (gql: GqlClient, options: InsertMock
     inserted += affectedRows;
     onProgress?.(inserted, count);
   }
+
+  return { tokens, trades };
 };
 
 const getRandomMint = () => {

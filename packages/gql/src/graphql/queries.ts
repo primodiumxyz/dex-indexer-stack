@@ -9,7 +9,7 @@ export const GetAllTokensQuery = graphql(`
 `);
 
 export const GetTopTokensByVolumeQuery = graphql(`
-  query GetTopTokensByVolumeQuery($minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) {
+  query GetTopTokensByVolumeQuery($minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0, $limit: Int = 50) {
     token_rolling_stats_30min(
       where: {
         is_pump_token: { _eq: true }
@@ -17,7 +17,7 @@ export const GetTopTokensByVolumeQuery = graphql(`
         volume_usd_1m: { _gte: $minRecentVolume }
       }
       order_by: { volume_usd_30m: desc }
-      limit: 50
+      limit: $limit
     ) {
       mint
       name
@@ -92,6 +92,7 @@ export const GetTokenPricesSinceQuery = graphql(`
       order_by: { created_at: asc }
     ) {
       token_price_usd
+      volume_usd
       created_at
     }
   }
