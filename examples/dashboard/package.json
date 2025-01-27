@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@primodiumxyz/solana-dex-indexer-gql": "workspace:*",
+    "@primodiumxyz/dex-graphql": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-collapsible": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.2",

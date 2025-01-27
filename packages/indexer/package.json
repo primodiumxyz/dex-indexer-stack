@@ -1,5 +1,5 @@
 {
-  "name": "@primodiumxyz/solana-dex-indexer",
+  "name": "@primodiumxyz/dex-indexer",
   "version": "0.0.1",
   "description": "TypeScript indexer for DEX trades on Solana using Yellowstone GRPC.",
   "repository": {
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
-    "@primodiumxyz/solana-dex-indexer-gql": "workspace:*",
+    "@primodiumxyz/dex-graphql": "workspace:*",
     "@shyft-to/solana-transaction-parser": "^1.1.17",
     "@solana/buffer-layout": "^4.0.1",
     "@solana/buffer-layout-utils": "^0.2.0",

@@ -1,5 +1,5 @@
 {
-  "name": "@primodiumxyz/solana-dex-indexer-gql",
+  "name": "@primodiumxyz/dex-graphql",
   "version": "0.0.1",
   "description": "GraphQL client for TypeScript with Hasura & Timescale support, for indexing Solana DEX trades and tokens.",
   "repository": {
