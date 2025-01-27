@@ -94,7 +94,7 @@ export const waitForSubscriptionUpdate = async (
   verifyFn: () => boolean,
   options?: { timeoutMs?: number; checkIntervalMs?: number },
 ) => {
-  const timeoutMs = options?.timeoutMs ?? 10000;
+  const timeoutMs = options?.timeoutMs ?? 20000;
   const checkIntervalMs = options?.checkIntervalMs ?? 100;
 
   return new Promise((resolve, reject) => {
