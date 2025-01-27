@@ -17,8 +17,8 @@ export const seed = async (options: {
     },
   });
 
-  // Give a second for api.token_stats_1h to be refreshed (every 1s during testing)
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Give a few seconds for api.token_stats_1h to be refreshed (every 1s during testing)
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Refresh view
   await refreshTokenRollingStats30Min();

@@ -97,8 +97,6 @@ export const waitForSubscriptionUpdate = async (
   const timeoutMs = options?.timeoutMs ?? 10000;
   const checkIntervalMs = options?.checkIntervalMs ?? 100;
 
-  refreshTokenRollingStats30Min();
-
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       reject(new Error(`Condition not met within ${timeoutMs}ms timeout`));
@@ -109,7 +107,10 @@ export const waitForSubscriptionUpdate = async (
         clearTimeout(timeoutId);
         resolve(true);
       } else {
-        setTimeout(checkCondition, checkIntervalMs);
+        setTimeout(async () => {
+          await refreshTokenRollingStats30Min();
+          checkCondition();
+        }, checkIntervalMs);
       }
     };
 
