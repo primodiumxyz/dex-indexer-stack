@@ -23,9 +23,6 @@ jobs:
       - name: Install docker compose
         run: sudo apt-get update && sudo apt-get install docker-compose
 
-      - name: Run Hasura DB
-        run: pnpm dev:gql:ci
-
       - name: Run Tests
         run: pnpm test
 
