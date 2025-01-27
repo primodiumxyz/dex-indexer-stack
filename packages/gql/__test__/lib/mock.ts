@@ -41,6 +41,22 @@ export const insertMockTradeHistory = async (
   options: InsertMockTradeHistoryOptions,
 ): Promise<{ tokens: Token[]; trades: Trade[] }> => {
   const { count, from, batchSize = 1000, onProgress } = options;
+  const { tokens, trades } = getRandomTokensAndTrades(count, from);
+
+  const batches = Math.ceil(count / batchSize);
+  let inserted = 0;
+
+  for (let i = 0; i < batches; i++) {
+    const affectedRows = await insertTradeHistory(gql, trades.slice(i * batchSize, (i + 1) * batchSize));
+
+    inserted += affectedRows;
+    onProgress?.(inserted, count);
+  }
+
+  return { tokens, trades };
+};
+
+export const getRandomTokensAndTrades = (count: number, from: Date): { tokens: Token[]; trades: Trade[] } => {
   const tokenMintCount = Math.ceil(count * 0.05);
   const tokens: Token[] = Array.from({ length: tokenMintCount }, (_, i) => ({
     mint: getRandomMint(),
@@ -65,39 +81,35 @@ export const insertMockTradeHistory = async (
     };
   });
 
-  const batches = Math.ceil(count / batchSize);
-  let inserted = 0;
-
-  for (let i = 0; i < batches; i++) {
-    const res = await gql.db.InsertTradeHistoryManyMutation({
-      trades: trades.slice(i * batchSize, (i + 1) * batchSize).map((t) => ({
-        token_mint: t.mint,
-        volume_usd: t.volumeUsd.toString(),
-        token_price_usd: t.priceUsd.toString(),
-        created_at: t.createdAt,
-        token_metadata: toPgComposite({
-          name: t.name,
-          symbol: t.symbol,
-          description: t.description,
-          image_uri: t.imageUri,
-          external_url: t.externalUrl,
-          decimals: t.decimals,
-          supply: t.supply,
-          is_pump_token: t.isPumpToken,
-        }),
-      })),
-    });
-
-    if (res.error) throw new Error(res.error.message);
-    const affectedRows = res.data?.insert_api_trade_history?.affected_rows;
-
-    if (!affectedRows) throw new Error("Failed to insert mock trade history");
-
-    inserted += affectedRows;
-    onProgress?.(inserted, count);
-  }
-
   return { tokens, trades };
+};
+
+export const insertTradeHistory = async (gql: GqlClient, trades: Trade[]): Promise<number> => {
+  const res = await gql.db.InsertTradeHistoryManyMutation({
+    trades: trades.map((t) => ({
+      token_mint: t.mint,
+      volume_usd: t.volumeUsd.toString(),
+      token_price_usd: t.priceUsd.toString(),
+      created_at: t.createdAt,
+      token_metadata: toPgComposite({
+        name: t.name,
+        symbol: t.symbol,
+        description: t.description,
+        image_uri: t.imageUri,
+        external_url: t.externalUrl,
+        decimals: t.decimals,
+        supply: t.supply,
+        is_pump_token: t.isPumpToken,
+      }),
+    })),
+  });
+
+  if (res.error) throw new Error(res.error.message);
+  const affectedRows = res.data?.insert_api_trade_history?.affected_rows;
+
+  if (!affectedRows) throw new Error("Failed to insert mock trade history");
+
+  return affectedRows;
 };
 
 const getRandomMint = () => {

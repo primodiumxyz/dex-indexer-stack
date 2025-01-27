@@ -2,9 +2,11 @@
 
 # Parse command line arguments
 CI_MODE=false
+TEST_MODE=false
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     --ci) CI_MODE=true ;;
+    --test) TEST_MODE=true ;;
     *) echo "Unknown parameter: $1"; exit 1 ;;
   esac
   shift
@@ -62,6 +64,11 @@ for ((i=1; i<=$RETRIES; i++)); do
     if [ "$CI_MODE" = false ]; then
       echo "Starting Hasura console..."
       pnpm local:console &
+    fi
+
+    if [ "$TEST_MODE" = true ]; then
+      echo "Seeding database..."
+      pnpm local:seed
     fi
 
     break

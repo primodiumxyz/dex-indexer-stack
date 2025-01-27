@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, assert, beforeAll, describe, expect, it } from "vitest";
 
 import { GqlClient } from "../../src/index";
 import { createClientNoCache } from "../lib/common";
@@ -24,15 +24,15 @@ describe("query tests", () => {
 
   afterAll(async () => {
     const res = await gql.db.DeleteTradeHistoryManyMutation({ mints: Array.from(new Set(tokens.map((t) => t.mint))) });
-    if (res.error) throw new Error(res.error.message);
+    assert(!res.error, res.error?.message);
   });
 
   it("GetTopTokensByVolumeQuery", async () => {
     // Get the top 10 tokens by volume
     const res = await gql.db.GetTopTokensByVolumeQuery({ limit: 10 });
-    if (res.error) throw new Error(res.error.message);
+    assert(!res.error, res.error?.message);
     const topTokens = res.data?.token_rolling_stats_30min;
-    if (!topTokens) throw new Error("No top tokens returned");
+    assert(topTokens, "No top tokens returned");
 
     // Sort expected tokens by 30min volume
     const expectedTopTokens = tokens.sort((a, b) => b.volumeUsd30m - a.volumeUsd30m).slice(0, 10);
@@ -54,10 +54,10 @@ describe("query tests", () => {
   it("GetTokenMetadataQuery", async () => {
     const expectedToken = tokens[0];
     const res = await gql.db.GetTokenMetadataQuery({ token: expectedToken.mint });
-    if (res.error) throw new Error(res.error.message);
+    assert(!res.error, res.error?.message);
 
     const token = res.data?.token_rolling_stats_30min[0];
-    if (!token) throw new Error("No token returned");
+    assert(token, "No token returned");
 
     expect(token.mint).toBe(expectedToken.mint);
     expect(token.name).toBe(expectedToken.name);
@@ -82,10 +82,10 @@ describe("query tests", () => {
     const res = await gql.db.GetBulkTokenMetadataQuery({
       tokens: tokens.sort((a, b) => a.mint.localeCompare(b.mint)).map((t) => t.mint),
     });
-    if (res.error) throw new Error(res.error.message);
+    assert(!res.error, res.error?.message);
 
     const tokensRes = res.data?.token_rolling_stats_30min;
-    if (!tokensRes) throw new Error("No tokens returned");
+    assert(tokensRes, "No tokens returned");
 
     tokensRes
       .sort((a, b) => a.mint.localeCompare(b.mint))
@@ -122,10 +122,10 @@ describe("query tests", () => {
         token: token.mint,
         since: new Date(Date.now() - 10 * 60 * 1000),
       });
-      if (res.error) throw new Error(res.error.message);
+      assert(!res.error, res.error?.message);
 
       const prices = res.data?.api_trade_history;
-      if (!prices) throw new Error("No prices returned");
+      assert(prices, "No prices returned");
 
       prices.forEach((price, i) => {
         expect(price.token_price_usd).toBeCloseTo(expectedPrices[i].priceUsd, 8);
@@ -148,7 +148,7 @@ describe("query tests", () => {
         token: token.mint,
         since,
       });
-      if (res.error) throw new Error(res.error.message);
+      assert(!res.error, res.error?.message);
 
       const candles = res.data?.token_candles_history_1min;
       if (!candles) throw new Error("No candles returned");

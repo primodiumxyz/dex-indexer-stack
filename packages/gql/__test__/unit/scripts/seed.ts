@@ -1,4 +1,4 @@
-import { createClientNoCache } from "../../lib/common";
+import { createClientNoCache, refreshTokenRollingStats30Min } from "../../lib/common";
 import { insertMockTradeHistory, Token, TokenWithStats, Trade } from "../../lib/mock";
 
 export const seed = async (options: {
@@ -17,14 +17,11 @@ export const seed = async (options: {
     },
   });
 
-  // Give a few seconds for api.token_stats_1h to be refreshed (every 5s)
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  // Give a second for api.token_stats_1h to be refreshed (every 1s during testing)
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   // Refresh view
-  const refreshRes = await client.db.RefreshTokenRollingStats30MinMutation();
-  if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success) {
-    throw new Error(`Failed to refresh token rolling stats: ${refreshRes.error?.message ?? "Unknown error"}`);
-  }
+  await refreshTokenRollingStats30Min();
 
   return { tokens: _tokens.map((token) => getTokenWithStats(token, trades)), trades };
 };
