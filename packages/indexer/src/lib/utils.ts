@@ -278,11 +278,13 @@ export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceAn
 
 /**
  * Converts a JavaScript object to a PostgreSQL composite type string
+ *
+ * @example
+ *   toPgComposite({ name: 'Test "Quote"', active: true, count: null });
+ *   // returns: ("Test ""Quote""",true,NULL)
+ *
  * @param obj The object to convert
  * @returns A string in PostgreSQL composite type format: (val1,val2,...)
- * @example
- * toPgComposite({ name: 'Test "Quote"', active: true, count: null })
- * // returns: ("Test ""Quote""",true,NULL)
  */
 export const toPgComposite = (obj: Record<string, unknown>): string => {
   const values = Object.values(obj).map((val) => {
@@ -323,7 +325,7 @@ export const toPgComposite = (obj: Record<string, unknown>): string => {
 
 /* ---------------------------------- UTILS --------------------------------- */
 export const fetchWithRetry = async (
-  input: RequestInfo | URL,
+  input: URL | string,
   init?: RequestInit,
   retry = 5_000,
   timeout = 300_000,
