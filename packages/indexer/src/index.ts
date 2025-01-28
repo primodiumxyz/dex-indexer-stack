@@ -147,7 +147,11 @@ export const start = async () => {
       ).db;
 
       // Create a batch manager to handle the batching of transactions
-      const batchManager = new BatchManager(gql, connection);
+      const batchManager = new BatchManager(gql, connection, {
+        processingMode: env.PROCESSING_MODE,
+        maxBatchSize: env.MAX_BATCH_SIZE,
+        minBatchFrequency: env.MIN_BATCH_FREQUENCY,
+      });
 
       // Start the connection with the Yellowstone GRPC server
       await setupGeyserClient(batchManager, connectionId);

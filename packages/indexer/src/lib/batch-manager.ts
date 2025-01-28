@@ -1,20 +1,20 @@
 import { Connection } from "@solana/web3.js";
 
 import { GqlClient } from "@gql/index";
-import { MAX_BATCH_SIZE, MIN_BATCH_FREQUENCY, PROCESSING_MODE, ProcessingMode } from "@/lib/constants";
 import { Swap } from "@/lib/types";
 import { fetchPriceAndMetadata, insertTrades } from "@/lib/utils";
 
 /**
  * Manages swaps as they are coming to be processed in batches with different modes.
  *
- * - In {@link PROCESSING_MODE.QUEUE} mode, batches are processed sequentially.
- * - In {@link PROCESSING_MODE.PARALLEL} mode, batches are processed in parallel as soon as they fit the expected size.
+ * - In {@link ProcessingMode.QUEUE} mode, batches are processed sequentially.
+ * - In {@link ProcessingMode.PARALLEL} mode, batches are processed in parallel as soon as they fit the expected size.
  *
  * Both have tradeoffs and need to be tested depending on the API limits and current network activity.
  *
- * The batcher will process the current batch either when it reaches the {@link MAX_BATCH_SIZE} or when the
- * {@link MIN_BATCH_FREQUENCY} has passed, so we don't take any risk of introducing latency.
+ * The batcher will process the current batch either when it reaches the max batch size or when the minimum batch
+ * frequency has passed, so we don't take any risk of introducing latency. Both of these can be configured in the
+ * environment variables.
  *
  * The flow is as follow:
  *
@@ -40,11 +40,16 @@ export class BatchManager {
   constructor(
     private gql: GqlClient["db"],
     private connection: Connection,
+    private options: {
+      processingMode: "queue" | "parallel";
+      maxBatchSize: number;
+      minBatchFrequency: number;
+    },
   ) {
     // Start the timer to check for processing needs periodically
     this.timer = setInterval(() => {
       this.processIfNeeded();
-    }, MIN_BATCH_FREQUENCY);
+    }, this.options.minBatchFrequency);
   }
 
   /**
@@ -67,12 +72,12 @@ export class BatchManager {
   private async processIfNeeded() {
     if (this.batch.length === 0) return;
     // Don't process if in queue mode and already processing
-    if (PROCESSING_MODE === ProcessingMode.QUEUE && this.processing) return;
+    if (this.options.processingMode === "queue" && this.processing) return;
 
     const now = Date.now();
     const timeSinceLastProcess = now - this.lastProcessTime;
-    const shouldProcessTime = timeSinceLastProcess >= MIN_BATCH_FREQUENCY;
-    const shouldProcessSize = this.batch.length >= MAX_BATCH_SIZE;
+    const shouldProcessTime = timeSinceLastProcess >= this.options.minBatchFrequency;
+    const shouldProcessSize = this.batch.length >= this.options.maxBatchSize;
 
     // Only process if EITHER:
     // 1. We've hit the max batch size
@@ -101,7 +106,7 @@ export class BatchManager {
   private async process() {
     this.processing = true;
     // Retrieve the batch to process and remove it from the manager
-    const batchToProcess = this.batch.splice(0, MAX_BATCH_SIZE);
+    const batchToProcess = this.batch.splice(0, this.options.maxBatchSize);
     // Calculate the highest latency of the batch
     const oldestSwapTime = Math.min(...batchToProcess.map((swap) => swap.timestamp));
     const queueLatency = (Date.now() - oldestSwapTime) / 1000;

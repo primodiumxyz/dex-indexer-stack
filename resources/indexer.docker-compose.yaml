@@ -11,3 +11,7 @@ services:
       - QUICKNODE_ENDPOINT=
       - QUICKNODE_TOKEN=
       - JUPITER_URL=
+      # optional
+      - PROCESSING_MODE=
+      - MAX_BATCH_SIZE=
+      - MIN_BATCH_FREQUENCY=
