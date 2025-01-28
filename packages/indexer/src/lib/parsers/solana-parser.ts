@@ -1,6 +1,3 @@
-// Copied and cleaned up from @shyft-to/solana-tx-parser-public
-// Also to avoid errors probably due to cyclical dependencies: "TypeError: (0 , codecs_strings_1.getStringCodec) is not a function"
-
 import { BorshInstructionCoder, Idl } from "@coral-xyz/anchor";
 import {
   compiledInstructionToInstruction,
@@ -42,18 +39,23 @@ const MEMO_PROGRAM_V2 = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 
 /**
  * Class for parsing arbitrary solana transactions in various formats
- * - by txHash
- * - from raw transaction data (base64 encoded or buffer)
- * - @solana/web3.js getTransaction().message object
- * - @solana/web3.js getParsedTransaction().message or Transaction.compileMessage() object
- * - @solana/web3.js TransactionInstruction object
+ *
+ * - By txHash
+ * - From raw transaction data (base64 encoded or buffer)
+ * - [@]solana/web3.js getTransaction().message object
+ * - [@]solana/web3.js getParsedTransaction().message or Transaction.compileMessage() object
+ * - [@]solana/web3.js TransactionInstruction object
+ *
+ * Note: This code is copied and stripped down to the bare minimum from [@]shyft-to/solana-tx-parser-public; this also
+ * avoids some errors (that might be due to cyclical dependencies), e.g. "TypeError: (0 ,
+ * codecs_strings_1.getStringCodec) is not a function".
+ *
+ * @see original code - https://github.com/Shyft-to/solana-tx-parser-public/blob/master/src/parsers.ts
  */
 export class SolanaParser {
   private instructionParsers: InstructionParsers;
   private instructionDecoders: Map<PublicKey | string, BorshInstructionCoder>;
-  /**
-   * Initializes parser object
-   */
+  /** Initializes parser object */
   constructor() {
     this.instructionDecoders = new Map();
     this.instructionParsers = new Map();
@@ -61,8 +63,9 @@ export class SolanaParser {
 
   /**
    * Adds (or updates) parser for provided programId
-   * @param programId program id to add parser for
-   * @param parser parser to parse programId instructions
+   *
+   * @param programId Program id to add parser for
+   * @param parser Parser to parse programId instructions
    */
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   addParser(programId: PublicKey, parser: ParserFunction<Idl, string>) {
@@ -71,7 +74,8 @@ export class SolanaParser {
 
   /**
    * Adds (or updates) parser for provided programId
-   * @param programId program id to add parser for
+   *
+   * @param programId Program id to add parser for
    * @param idl IDL that describes anchor program
    */
   addParserFromIdl(programId: PublicKey | string, idl: Idl) {
@@ -139,7 +143,8 @@ export class SolanaParser {
 
   /**
    * Removes parser for provided program id
-   * @param programId program id to remove parser for
+   *
+   * @param programId Program id to remove parser for
    */
   removeParser(programId: PublicKey) {
     this.instructionParsers.delete(programId.toBase58());
@@ -161,8 +166,9 @@ export class SolanaParser {
 
   /**
    * Parses instruction
-   * @param instruction transaction instruction to parse
-   * @returns parsed transaction instruction or UnknownInstruction
+   *
+   * @param instruction Transaction instruction to parse
+   * @returns Parsed transaction instruction or UnknownInstruction
    */
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseInstruction<I extends Idl, IxName extends InstructionNames<I>>(
@@ -192,8 +198,9 @@ export class SolanaParser {
 
   /**
    * Parses transaction data along with inner instructions
-   * @param tx response to parse
-   * @returns list of parsed instructions
+   *
+   * @param tx Response to parse
+   * @returns List of parsed instructions
    */
   parseTransactionWithInnerInstructions<T extends VersionedTransactionResponse>(tx: T): TransactionWithParsed[] {
     const flattened = flattenTransactionResponse(tx);
@@ -210,9 +217,10 @@ export class SolanaParser {
 
   /**
    * Parses transaction data
-   * @param txMessage message to parse
+   *
+   * @param txMessage Message to parse
    * @param altLoadedAddresses VersionedTransaction.meta.loaddedAddresses if tx is versioned
-   * @returns list of parsed instructions
+   * @returns List of parsed instructions
    */
   parseTransactionData<T extends Message | VersionedMessage>(
     txMessage: T,
@@ -228,8 +236,9 @@ export class SolanaParser {
 
   /**
    * Parses transaction data retrieved from Connection.getParsedTransaction
-   * @param txParsedMessage message to parse
-   * @returns list of parsed instructions
+   *
+   * @param txParsedMessage Message to parse
+   * @returns List of parsed instructions
    */
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseTransactionParsedData(txParsedMessage: ParsedMessage): ParsedInstruction<Idl, string>[] {
@@ -246,8 +255,9 @@ export class SolanaParser {
 
   /**
    * Parses transaction data retrieved from Connection.getParsedTransaction along with the inner instructions
-   * @param txParsedMessage message to parse
-   * @returns list of parsed instructions
+   *
+   * @param txParsedMessage Message to parse
+   * @returns List of parsed instructions
    */
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseParsedTransactionWithInnerInstructions(txn: ParsedTransactionWithMeta): ParsedInstruction<Idl, string>[] {
@@ -299,10 +309,11 @@ export class SolanaParser {
 
   /**
    * Fetches tx from blockchain and parses it
-   * @param connection web3 Connection
-   * @param txId transaction id
-   * @param flatten - true if CPI calls need to be parsed too
-   * @returns list of parsed instructions
+   *
+   * @param connection Web3 Connection
+   * @param txId Transaction id
+   * @param flatten - True if CPI calls need to be parsed too
+   * @returns List of parsed instructions
    */
   async parseTransaction(
     connection: Connection,
@@ -327,8 +338,9 @@ export class SolanaParser {
 
   /**
    * Parses transaction dump
-   * @param txDump base64-encoded string or raw Buffer which contains tx dump
-   * @returns list of parsed instructions
+   *
+   * @param txDump Base64-encoded string or raw Buffer which contains tx dump
+   * @returns List of parsed instructions
    */
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseTransactionDump(txDump: string | Buffer): ParsedInstruction<Idl, string>[] {

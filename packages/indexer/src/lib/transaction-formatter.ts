@@ -15,7 +15,23 @@ import {
   TransactionStatusMeta,
 } from "@triton-one/yellowstone-grpc/dist/grpc/solana-storage";
 
+/**
+ * Formats a raw transaction update from the stream into an understandable and parsable JSON object.
+ *
+ * Note: this code is copied, fixed and typed from an example provided by Shyft.
+ *
+ * @see original code - https://replit.com/@rex-god/get-parsed-instructions-of-raydium-amm#parsers/raydium-amm-parser.ts
+ * @see blog post - https://blogs.shyft.to/how-to-stream-and-parse-raydium-transactions-with-shyfts-grpc-network-b16d5b3af249
+ */
 export class TransactionFormatter {
+  /**
+   * Main function for formatting a raw transaction update from the stream into an understandable and parsable JSON
+   * object.
+   *
+   * @param data - The raw {@link SubscribeUpdateTransaction} object from the Yellowstone GRPC stream
+   * @param time - The current time
+   * @returns The formatted {@link VersionedTransactionResponse} object
+   */
   public formTransactionFromJson(
     data: SubscribeUpdateTransaction,
     time: number,
@@ -25,13 +41,18 @@ export class TransactionFormatter {
     const slot = data.slot;
     const version = rawTx?.transaction?.message?.versioned ? 0 : "legacy";
 
+    // Form the meta object
     const meta = this.formMeta(rawTx?.meta);
     if (!meta) return;
+
+    // Form the signatures array
     const signatures = rawTx?.transaction?.signatures.map((s: Uint8Array) => utils.bytes.bs58.encode(s));
 
+    // Form the message object
     const message = this.formTxnMessage(rawTx?.transaction?.message);
     if (!message) return;
 
+    // Return the fully formatted transaction object
     return {
       slot: Number(slot),
       version,
@@ -44,6 +65,14 @@ export class TransactionFormatter {
     };
   }
 
+  /**
+   * Formats the message object from the raw transaction update.
+   *
+   * This will unify the message object into a single format, regardless of the transaction version.
+   *
+   * @param message - The raw transaction message
+   * @returns The formatted {@link VersionedMessage} object
+   */
   private formTxnMessage(message: Transaction["message"]): VersionedMessage | undefined {
     if (!message) return;
     if (!message.versioned) {
@@ -99,6 +128,12 @@ export class TransactionFormatter {
     }
   }
 
+  /**
+   * Formats the meta object from the raw transaction update.
+   *
+   * @param meta - The raw transaction meta
+   * @returns The formatted {@link ConfirmedTransactionMeta} object
+   */
   private formMeta(meta: TransactionStatusMeta | undefined): ConfirmedTransactionMeta | undefined {
     if (!meta) return;
     return {
@@ -134,6 +169,12 @@ export class TransactionFormatter {
     };
   }
 
+  /**
+   * Formats the token balance object from the raw transaction update.
+   *
+   * @param balance - The raw {@link TokenBalanceGrpc} object
+   * @returns The formatted {@link TokenBalance} object
+   */
   private formTokenBalance(balance: TokenBalanceGrpc): TokenBalance {
     return {
       ...balance,

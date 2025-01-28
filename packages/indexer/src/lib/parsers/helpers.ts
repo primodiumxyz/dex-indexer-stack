@@ -13,22 +13,14 @@ import {
   VersionedTransactionResponse,
 } from "@solana/web3.js";
 
-type LogContext = {
-  rawLogs: string[];
-  errors: string[];
-  logMessages: string[];
-  dataLogs: string[];
-  programId: string;
-  depth: number;
-  id: number;
-  instructionIndex: number;
-  invokeResult?: string;
-};
-
 /**
  * Parse transaction message and extract account metas
- * @param message transaction message
- * @returns parsed accounts metas
+ *
+ * Note: Copied from [@]shyft-to/solana-tx-parser-public
+ *
+ * @param message Transaction message
+ * @returns Parsed accounts metas
+ * @see original code - https://github.com/Shyft-to/solana-tx-parser-public/blob/master/src/helpers.ts
  */
 export function parseTransactionAccounts<T extends Message | VersionedMessage>(
   message: T,
@@ -72,9 +64,13 @@ export function parseTransactionAccounts<T extends Message | VersionedMessage>(
 
 /**
  * Converts compiled instruction into common TransactionInstruction
+ *
+ * Note: Copied from [@]shyft-to/solana-tx-parser-public
+ *
  * @param compiledInstruction
- * @param parsedAccounts account meta, result of {@link parseTransactionAccounts}
+ * @param parsedAccounts Account meta, result of {@link parseTransactionAccounts}
  * @returns TransactionInstruction
+ * @see original code - https://github.com/Shyft-to/solana-tx-parser-public/blob/master/src/helpers.ts
  */
 export function compiledInstructionToInstruction<Ix extends CompiledInstruction | MessageCompiledInstruction>(
   compiledInstruction: Ix,
@@ -114,6 +110,16 @@ export function compiledInstructionToInstruction<Ix extends CompiledInstruction 
   }
 }
 
+/**
+ * Converts parsed accounts to account meta
+ *
+ * Note: Copied from [@]shyft-to/solana-tx-parser-public
+ *
+ * @param accounts Parsed accounts
+ * @param accountMeta Account meta
+ * @returns Account meta
+ * @see original code - https://github.com/Shyft-to/solana-tx-parser-public/blob/master/src/helpers.ts
+ */
 function parsedAccountsToMeta(accounts: PublicKey[], accountMeta: AccountMeta[]): AccountMeta[] {
   const meta = accountMeta.map((m) => ({ pk: m.pubkey.toString(), ...m }));
 
@@ -126,6 +132,16 @@ function parsedAccountsToMeta(accounts: PublicKey[], accountMeta: AccountMeta[])
   });
 }
 
+/**
+ * Converts partially decoded instruction to instruction
+ *
+ * Note: Copied from [@]shyft-to/solana-tx-parser-public
+ *
+ * @param parsedInstruction Parsed instruction
+ * @param accountMeta Account meta
+ * @returns Instruction
+ * @see original code - https://github.com/Shyft-to/solana-tx-parser-public/blob/master/src/helpers.ts
+ */
 export function parsedInstructionToInstruction(
   parsedInstruction: PartiallyDecodedInstruction,
   accountMeta: AccountMeta[],
@@ -139,8 +155,12 @@ export function parsedInstructionToInstruction(
 
 /**
  * Converts transaction response with CPI into artifical transaction that contains all instructions from tx and CPI
- * @param transaction transactionResponse to convert from
+ *
+ * Note: Copied from [@]shyft-to/solana-tx-parser-public
+ *
+ * @param transaction TransactionResponse to convert from
  * @returns Transaction object
+ * @see original code - https://github.com/Shyft-to/solana-tx-parser-public/blob/master/src/helpers.ts
  */
 export function flattenTransactionResponse(
   transaction: VersionedTransactionResponse,
@@ -186,6 +206,16 @@ export function flattenTransactionResponse(
   return result;
 }
 
+/**
+ * Flattens the IdlAccountItem array into an IdlAccount array
+ *
+ * Note: Copied from [@]shyft-to/solana-tx-parser-public
+ *
+ * @param accounts IdlAccountItem array
+ * @param prefix (optional) Prefix for the account name
+ * @returns IdlAccount array
+ * @see original code - https://github.com/Shyft-to/solana-tx-parser-public/blob/master/src/helpers.ts
+ */
 export function flattenIdlAccounts(accounts: IdlAccountItem[], prefix?: string): IdlAccount[] {
   return accounts
     .map((account) => {
