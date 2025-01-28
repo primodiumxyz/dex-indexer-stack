@@ -46,6 +46,7 @@ services:
     ports:
       - "8090:8090"
     environment:
+      CACHE_TIME: <some_number_in_seconds> # default: 30
       REDIS_PASSWORD: <some_password> # this password is used to gatekeep access to the cache flush endpoint
       REDIS_PORT: 8091
     depends_on:
