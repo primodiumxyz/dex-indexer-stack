@@ -1,18 +1,22 @@
 {
   "extends": "../../.tsconfigs/bundler/dom/library-monorepo.json",
   "compilerOptions": {
-    "moduleResolution": "bundler",
+    "composite": false,
+    "moduleResolution": "Bundler",
+    "outDir": "dist",
+    "rootDir": "./../",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@bin/*": ["./bin/*"],
-      "@gql/*": ["./../../packages/gql/src/*"]
+      "@gql/*": ["./../gql/src/*"]
     }
   },
-  "include": ["**/*.ts"],
+  "include": ["src/**/*", "bin/**/*"],
   "exclude": ["node_modules", "dist"],
   "references": [
     {
-      "path": "../../packages/gql"
+      "path": "../gql"
     }
   ]
 }

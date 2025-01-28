@@ -2,16 +2,29 @@
   "name": "@primodiumxyz/solana-dex-indexer",
   "version": "0.0.1",
   "description": "TypeScript indexer for DEX trades on Solana using Yellowstone GRPC.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primodiumxyz/solana-dex-indexer-stack",
+    "directory": "./packages/indexer"
+  },
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
   },
-  "types": "src/index.ts",
+  "main": "./dist/bin/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "local:indexer": "./dist/bin/index.js"
+  },
   "files": [
-    "src"
+    "dist",
+    "Dockerfile",
+    ".dockerignore"
   ],
   "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
     "lint": "eslint .",
     "start": "tsx bin/index",
     "types:dev": "tsc --watch",
@@ -19,13 +32,13 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
+    "@primodiumxyz/solana-dex-indexer-gql": "workspace:*",
     "@shyft-to/solana-transaction-parser": "^1.1.17",
     "@solana/buffer-layout": "^4.0.1",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/codecs": "2.0.0-preview.2",
     "@solana/web3.js": "^1.95.2",
     "@triton-one/yellowstone-grpc": "^1.0.0",
-    "@primodiumxyz/solana-dex-indexer-gql": "workspace:*",
     "dotenv": "^16.0.3",
     "ws": "^8.18.0",
     "zod": "^3.21.4"
@@ -35,6 +48,7 @@
     "@types/debug": "^4.1.7",
     "@types/ws": "^8.5.12",
     "prettier": "^3.3.3",
+    "tsup": "^8.3.6",
     "tsx": "^3.12.6"
   },
   "publishConfig": {

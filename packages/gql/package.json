@@ -2,24 +2,43 @@
   "name": "@primodiumxyz/solana-dex-indexer-gql",
   "version": "0.0.1",
   "description": "GraphQL client for TypeScript with Hasura & Timescale support, for indexing Solana DEX trades and tokens.",
-  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primodiumxyz/solana-dex-indexer-stack",
+    "directory": "./packages/gql"
+  },
+  "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "local:gql": "./bin/start-db.sh",
+    "local:gql:ci": "./bin/start-db.sh --ci"
   },
   "files": [
-    "src"
+    "bin",
+    "dist",
+    "Dockerfile",
+    "docker-compose.yaml",
+    ".dockerignore"
   ],
   "scripts": {
     "benchmark": "pnpm tsx ./__test__/benchmarks/scripts/seed.ts && vitest run benchmarks",
+    "build": "tsup",
+    "clean": "rm -rf dist",
     "dev": "./bin/start-db.sh",
     "dev:ci": "./bin/start-db.sh --ci",
+    "dev:test": "./bin/start-db.sh --ci --test",
     "generate:types": "pnpm gql-tada generate-output",
     "k6:local": "./__test__/k6/scripts/run-k6.sh -e local",
     "k6:local:skip-seed": "./__test__/k6/scripts/run-k6.sh -e local -s",
     "k6:remote": "./__test__/k6/scripts/run-k6.sh -e remote -s",
     "prepare": "dotenvx run -f ./../../.env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.44.0-beta.1'",
     "local:console": "dotenvx run -f ./../../.env --quiet -- sh -c 'pnpm hasura console'",
+    "local:seed": "dotenvx run -f ./../../.env --quiet -- sh -c 'pnpm hasura seed apply --all-databases'",
     "remote:apply-migrations": "dotenvx run -f ./../../.env --quiet -- sh -c 'pnpm hasura migrate apply --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "remote:apply-metadata": "dotenvx run -f ./../../.env --quiet -- sh -c 'pnpm hasura metadata apply --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "remote:metadata-ic": "dotenvx run -f ./../../.env --quiet -- sh -c 'pnpm hasura metadata ic list --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
@@ -30,12 +49,10 @@
     "remote:upgrade-v3": "dotenvx run -f ./../../.env --quiet -- sh -c 'pnpm hasura scripts update-project-v3 --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "start:cache": "tsx src/cache/server.ts",
     "teardown": "docker compose down --remove-orphans --volumes",
-    "test": "vitest run unit",
-    "test:coverage": "vitest run unit --coverage",
-    "test:watch": "vitest unit"
+    "test": "pnpm dev:ci && vitest run unit",
+    "test:coverage": "pnpm dev:ci && vitest run unit --coverage",
+    "test:watch": "pnpm dev:ci && vitest unit"
   },
-  "keywords": [],
-  "license": "MIT",
   "dependencies": {
     "@dotenvx/dotenvx": "^1.14.1",
     "@fastify/cors": "^8.3.0",
@@ -57,8 +74,9 @@
     "@vitest/utils": "^2.1.1",
     "hasura-cli": "2.36.1",
     "prettier": "^3.3.3",
+    "tsup": "^8.3.6",
     "vite-tsconfig-paths": "^4.2.0",
-    "vitest": "0.31.4",
+    "vitest": "3.0.4",
     "yaml": "^2.6.1"
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useSubscription } from "urql";
 
-import { subscriptions } from "@primodiumxyz/solana-dex-indexer-gql";
+import { subscriptions } from "@gql/index";
 import { Token, TokenPrice } from "@/lib/types";
 
 export const useTokenPrices = (

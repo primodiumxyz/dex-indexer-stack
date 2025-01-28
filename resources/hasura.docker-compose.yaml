@@ -1,4 +1,5 @@
-graphql-engine:
+services:
+  graphql-engine:
     image: hasura/graphql-engine:v2.44.0
     ports:
       - "8080:8080"
@@ -38,7 +39,7 @@ graphql-engine:
       retries: 5
       start_period: 5s
   graphql-cache:
-    image: ghcr.io/primodiumxyz/tub-hasura-cache:release-v0.5
+    image: ghcr.io/primodiumxyz/sdi-hasura-cache@latest
     restart: always
     ports:
       - "8090:8090"

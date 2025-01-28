@@ -190,6 +190,7 @@ const createClient = <T extends "web" | "node" = "node">({
     };
   };
 
+  // @ts-ignore
   if (typeof window !== "undefined") return createClientInternal() as CreateClientReturn<T>;
   return import("ws").then(({ WebSocket }) => createClientInternal(WebSocket)) as CreateClientReturn<T>;
 };

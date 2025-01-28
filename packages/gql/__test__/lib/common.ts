@@ -78,3 +78,42 @@ export const clearCache = async () => {
     console.error("Failed to clear cache", error);
   }
 };
+
+export const refreshTokenRollingStats30Min = async () => {
+  const gql = await createClientNoCache();
+  const refreshRes = await gql.db.RefreshTokenRollingStats30MinMutation();
+  if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success) {
+    throw new Error(`Failed to refresh token rolling stats: ${refreshRes.error?.message ?? "Unknown error"}`);
+  }
+};
+
+// This will include waiting for continuous aggregate to refresh
+//   & waiting for rolling stats to update
+//   & waiting for subscription to update
+export const waitForSubscriptionUpdate = async (
+  verifyFn: () => boolean,
+  options?: { timeoutMs?: number; checkIntervalMs?: number },
+) => {
+  const timeoutMs = options?.timeoutMs ?? 20000;
+  const checkIntervalMs = options?.checkIntervalMs ?? 100;
+
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(`Condition not met within ${timeoutMs}ms timeout`));
+    }, timeoutMs);
+
+    const checkCondition = () => {
+      if (verifyFn()) {
+        clearTimeout(timeoutId);
+        resolve(true);
+      } else {
+        setTimeout(async () => {
+          await refreshTokenRollingStats30Min();
+          checkCondition();
+        }, checkIntervalMs);
+      }
+    };
+
+    checkCondition();
+  });
+};

@@ -1,23 +1,20 @@
 {
-  "extends": "../../.tsconfigs/bundler/dom/library-monorepo.json",
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext"],
+    "declaration": true,
+    "emitDeclarationOnly": true,
     "esModuleInterop": true,
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@bin/*": [
-        "./bin/*"
-      ],
-    }
-  },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "allowJs": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false
+  }
 }

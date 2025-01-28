@@ -1,7 +1,23 @@
 {
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "composite": true,
+    "lib": ["ESNext"],
+    "declaration": true,
+    "emitDeclarationOnly": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "baseUrl": ".",
+    "allowJs": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
     "plugins": [
       {
         "name": "gql.tada/ts-plugin",
@@ -14,14 +30,5 @@
         }
       }
     ]
-  },
-  "extends": "../../.tsconfigs/bundler/dom/library-monorepo.json",
-  "exclude": ["node_modules", "dist"],
-  "include": ["./src/**/*", "./bin/**/*", "migrations/timescale"],
-  "skipLibCheck": true,
-  "target": "ESNext",
-  "allowJs": true,
-  "moduleDetection": "force",
-  "isolatedModules": true,
-  "verbatimModuleSyntax": false
+  }
 }

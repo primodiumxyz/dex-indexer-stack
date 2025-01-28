@@ -22,4 +22,5 @@ CREATE INDEX ON api.candles_history_1min (token_mint, bucket DESC);
 SELECT add_continuous_aggregate_policy('api.candles_history_1min',
     start_offset => INTERVAL '24 hours',
     end_offset => INTERVAL '0',
-    schedule_interval => INTERVAL '5 seconds');
+    schedule_interval => INTERVAL '5 seconds'
+);

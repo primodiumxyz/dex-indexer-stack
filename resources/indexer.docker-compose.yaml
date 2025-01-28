@@ -1,5 +1,5 @@
 services:
-  tub-indexer:
+  indexer:
     image: ghcr.io/primodiumxyz/sdi-indexer@latest
     restart: always
     ulimits:
