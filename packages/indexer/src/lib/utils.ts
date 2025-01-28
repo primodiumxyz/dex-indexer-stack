@@ -1,6 +1,5 @@
 // #!/usr/bin/env node
 import { Connection, ParsedAccountData, PublicKey } from "@solana/web3.js";
-import { config } from "dotenv";
 
 import { GqlClient } from "@gql/index";
 import { parseEnv } from "@bin/parseEnv";
@@ -15,8 +14,6 @@ import {
   SwapWithPriceAndMetadata,
   TransactionWithParsed,
 } from "@/lib/types";
-
-config({ path: "../../.env" });
 
 const env = parseEnv();
 

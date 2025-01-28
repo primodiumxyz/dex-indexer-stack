@@ -1,13 +1,10 @@
 import { Connection } from "@solana/web3.js";
-import { config } from "dotenv";
 
 import { parseEnv } from "@bin/parseEnv";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 import { SolanaParser } from "@/lib/parsers/solana-parser";
 import { TransactionFormatter } from "@/lib/transaction-formatter";
 import { fetchWithRetry } from "@/lib/utils";
-
-config({ path: "../../.env" });
 
 const env = parseEnv();
 

@@ -15,7 +15,7 @@
   "main": "./dist/bin/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "local:indexer": "./dist/bin/index.js"
+    "local:dex-indexer": "./dist/bin/index.js"
   },
   "files": [
     "dist",
@@ -26,7 +26,7 @@
     "build": "tsup",
     "clean": "rm -rf dist",
     "lint": "eslint .",
-    "start": "tsx bin/index",
+    "start": "dotenvx run -f ./../../.env --quiet -- sh -c 'tsx bin/index'",
     "types:dev": "tsc --watch",
     "types:test": "tsc --noEmit --skipLibCheck"
   },
@@ -39,11 +39,11 @@
     "@solana/codecs": "2.0.0-preview.2",
     "@solana/web3.js": "^1.95.2",
     "@triton-one/yellowstone-grpc": "^1.0.0",
-    "dotenv": "^16.0.3",
     "ws": "^8.18.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.14.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.3.0",
     "@types/debug": "^4.1.7",
     "@types/ws": "^8.5.12",
