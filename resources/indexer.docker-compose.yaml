@@ -1,6 +1,6 @@
 services:
   indexer:
-    image: ghcr.io/primodiumxyz/sdi-indexer@latest
+    image: ghcr.io/primodiumxyz/sdi-indexer:main
     restart: always
     ulimits:
       nofile: 65535 # Sets open file limit to prevent connection limits
@@ -11,3 +11,7 @@ services:
       - QUICKNODE_ENDPOINT=
       - QUICKNODE_TOKEN=
       - JUPITER_URL=
+      # optional
+      - PROCESSING_MODE=
+      - MAX_BATCH_SIZE=
+      - MIN_BATCH_FREQUENCY=

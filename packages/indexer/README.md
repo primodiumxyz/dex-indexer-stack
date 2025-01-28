@@ -1,59 +1,215 @@
-# Documentation
+# DEX Indexer
 
-A minimal Typescript server to listen to onchain trade transactions and parse them, in order to save prices of swapped tokens into a database.
+**A TypeScript indexer for DEX trades on Raydium (Solana) using Yellowstone GRPC.**
+
+It is best used in conjunction with the [dex-graphql](https://github.com/primodiumxyz/dex-indexer-stack/tree/main/packages/gql) package, which provides a GraphQL API for querying the data, and the complete infra for setting up a Timescale database optimized for time-series data, and interacting with it through Hasura.
+
+_DEX Indexer is available from npm
+as
+[`@primodiumxyz/dex-indexer`](https://www.npmjs.com/package/@primodiumxyz/dex-indexer)._
+
+## Table of contents
+
+- [Introduction](#introduction)
+  - [Overview](#overview)
+  - [Installation](#installation)
+  - [Quickstart](#quickstart)
+- [Usage](#usage)
+  - [Docker](#docker)
+  - [TypeScript](#typescript)
+  - [Development](#development)
+- [Details](#details)
+  - [Indexing flow](#indexing-flow)
+  - [Structure](#structure)
+  - [References](#references)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Introduction
+
+### Overview
+
+This package is used to index filtered transactions streamed from a Yellowstone GRPC server—i.e. swaps made on the Raydium AMM program—into a postgres database, with relevant data being parsed and/or fetched from external sources. The resulting trades and associated tokens are then available for querying through the [dex-graphql](https://github.com/primodiumxyz/dex-indexer-stack/tree/main/packages/gql) package.
+
+The indexer is designed to be run in a Docker container, but it can also be run directly in a node environment.
+
+There are a few dependencies on external services:
+
+- [Jupiter](https://station.jup.ag/docs/apis/price-api-v2) for fetching token prices (`/prices`)
+- [DAS API](https://developers.metaplex.com/das-api) for fetching token metadata in the Metaplex standard (`/getAssets`)
+- [Yellowstone GRPC](https://github.com/rpcpool/yellowstone-grpc) for streaming transactions with low latency
+
+All of these are available from QuickNode through add-ons, which is the recommended way to run the indexer.
+
+This also requires careful consideration and planning to configure [batch sizes and batching mode](./bin/parseEnv.ts), due to possible rate limits.
+
+On the database side, the preferred way is to use Timescale, which is optimized for time-series data, meaning that insertions performance won't be an issue. Additionally, the [dex-graphql](https://github.com/primodiumxyz/dex-indexer-stack/tree/main/packages/gql) package provides functionality that is focused on leveraging Timescale's capabilities for super-fast queries and subscriptions.
+
+Otherwise, the indexer just needs a postgres interface that will support inserting many trade entries in the following format (see [insertTrades](./src/lib/utils.ts)):
+
+```typescript
+// As a TypeScript type for better readability
+type Trade = {
+  token_mint: string;
+  volume_usd: string;
+  token_price_usd: string;
+  created_at: Date;
+  token_metadata: string;
+};
+
+// `token_metadata` being a composite type:
+type TokenMetadata = {
+  name: string;
+  symbol: string;
+  description: string;
+  image_uri: string;
+  external_url: string;
+  decimals: string;
+  supply: number;
+  is_pump_token: boolean;
+};
+```
+
+### Installation
+
+Just install the package from npm, preferably with pnpm.
+
+```bash
+pnpm add @primodiumxyz/dex-indexer
+```
+
+### Quickstart
+
+1. Configuration
+
+Add the following environment variables to your `.env` file:
+
+| Variable              | Description             | Default                 |
+| --------------------- | ----------------------- | ----------------------- |
+| `NODE_ENV`            | Node environment        | `local`                 |
+| `HASURA_URL`          | Hasura URL              | `http://localhost:8090` |
+| `HASURA_ADMIN_SECRET` | Hasura admin secret     |                         |
+| `QUICKNODE_ENDPOINT`  | Quicknode endpoint      |                         |
+| `QUICKNODE_TOKEN`     | Quicknode token         |                         |
+| `JUPITER_URL`         | Jupiter API URL         |                         |
+| `PROCESSING_MODE`     | Processing mode         | `parallel`              |
+| `MAX_BATCH_SIZE`      | Maximum batch size      | `100`                   |
+| `MIN_BATCH_FREQUENCY` | Minimum batch frequency | `500`                   |
+
+The variables with no default value are required.
+
+2. Run
+
+```sh
+local:dex-indexer
+# or specify the path to your .env file (install @dotenvx/dotenvx first)
+dotenvx run -f ./path/to/.env --quiet -- local:dex-indexer
+```
 
 ## Usage
 
-Install and run with:
+### Docker
+
+Usage with Docker is the recommended way to run the indexer, as you can directly consume [the image published on the GitHub Container Registry](https://github.com/primodiumxyz/dex-indexer-stack/pkgs/container/sdi-indexer).
+
+You can use the [`indexer.docker-compose.yaml`](../../resources/indexer.docker-compose.yaml) file linked in the resources, fill in the environment variables, and run:
 
 ```sh
-pnpm start
+docker compose up
 ```
 
-Or run along with other packages from root dir with:
+This will pull the image from the registry and start the indexer.
+
+To stop the indexer, you can use:
 
 ```sh
-pnpm dev:web-dashboard # this will also run an explorer
+docker compose down --remove-orphans
 ```
 
-## Configuration
+### TypeScript
 
-The server can be configured with the following environment variables (in root .env file):
+Usage with TypeScript is pretty straightforward as well, although it is not the way it was designed for.
 
-| Variable              | Description                     | Default                                       |
-| --------------------- | ------------------------------- | --------------------------------------------- |
-| `NODE_ENV`            | Environment                     | `local`                                       |
-| `SERVER_HOST`         | Host that the server listens on | `0.0.0.0`                                     |
-| `SERVER_PORT`         | Port that the server listens on | `8888`                                        |
-| `HASURA_ADMIN_SECRET` | Hasura admin secret             | `password`                                    |
-| `GRAPHQL_URL`         | GraphQL URL                     | `https://tub-graphql.primodium.ai/v1/graphql` |
-| `HELIUS_API_KEY`      | Helius API key                  |                                               |
+Just import the `start` function from the package and call it:
 
-## Adding a parser
+```typescript
+import { start } from "@primodiumxyz/dex-indexer";
 
-1. Create the parser in `src/lib/parsers` (or a minimal parser in `src/lib/parsers/minimal`, meaning that it doesn't bother decoding args and accounts, just returning the swap accounts)
-2. Add the program to `src/lib/constants.ts:PROGRAMS`
-3. That's it!
+const run = async () => {
+  await start();
+};
 
-# References
+run();
+```
 
-DISCRIMINATORS AND ACCOUNTS HERE: https://github.com/Topledger/solana-programs/tree/main/dex-trades/src/dapps
+Don't forget to run it with the environment variables context.
 
-1. Helius (min $499/month)
+### Development
 
-- enhanced websocket: needs at least business plan ($499/month)
-  - subscribe to txs: https://docs.helius.dev/webhooks-and-websockets/enhanced-websockets
-- parse txs: https://docs.helius.dev/solana-apis/enhanced-transactions-api/parse-transaction-s
+If you would like to develop on the indexer, you can do so by following these steps:
 
-2. Solana Tracker (min $247/month)
+1. Clone the repository:
 
-- shared Yellowstone Geyser for $247/month: https://www.solanatracker.io/solana-rpc
-  - https://medium.com/@je.sse/helius-atlas-rpc-pool-whirligig-geyser-alternative-8d2a6c54397b
+   ```sh
+   git clone https://github.com/primodiumxyz/dex-indexer-stack.git
+   ```
 
-3. Minimal library to parse transactions: https://github.com/ryoid/anchores/
+2. Install the dependencies:
 
-- this provides some helpers to parse Jupiter swap transactions, where a lot of traffic is going through, which could help bypass some of the minor DEXes by directly decoding the Jupiter swap event; will see if it provides the pools addresses
+   ```sh
+   pnpm i
+   ```
 
-### Outdated
+3. Run
 
-- [formatters](./src/lib/formatters) and [parsers](./src/lib/parsers) are copied and heavily fixed from [blog](https://blogs.shyft.to/how-to-stream-and-parse-raydium-transactions-with-shyfts-grpc-network-b16d5b3af249)/[replit](https://replit.com/@rex-god/get-parsed-instructions-of-raydium-amm#utils/transaction-formatter.ts)
+   a. everything (indexer & database) from root dir with:
+
+   ```sh
+   pnpm dev
+   ```
+
+   b. only the indexer if the database is already running:
+
+   ```sh
+   cd packages/indexer
+   pnpm start
+   ```
+
+You can also build the package for production at any point:
+
+    ```sh
+    cd packages/indexer
+    pnpm build
+    ```
+
+## Details
+
+### Indexing flow
+
+![Indexing flow](../../resources/indexing_flow_diagram.png)
+_Diagram of the indexing flow_
+
+### Structure
+
+```ml
+dist - "Compiled files for distribution"
+src - "Source files"
+├── bin - "Entry point of the package (running the indexer & validating the environment)"
+├── lib - "All of the internal logic, constants & types"
+│   └── parsers - "Parsing logic with the global Solana parser, any parser specific to a DEX and utilities"
+└── index.ts - "Main module, exports the `start` function to run the indexer"
+```
+
+### References
+
+- [A list of discriminators and accounts for major Solana DEXes](https://github.com/Topledger/solana-programs/tree/main/dex-trades/src/dapps)
+
+## Contributing
+
+If you wish to contribute to the package, please open an issue first to make sure that this is within the scope of the library, and that it is not already being worked on.
+
+## License
+
+This project is licensed under the MIT License - see [LICENSE](./LICENSE) for details.
+
+The library contains a few chunks of code copied and [modified from Shyft](https://github.com/Shyft-to/solana-tx-parser-public), especially in `lib/parsers`, mainly for fixing formatting inconsistencies or missing types, and easier integration with the rest of the codebase. It is as best as possible documented above each block of code inside the JSDoc comments.
