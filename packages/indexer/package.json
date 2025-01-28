@@ -4,7 +4,7 @@
   "description": "TypeScript indexer for DEX trades on Solana using Yellowstone GRPC.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/primodiumxyz/solana-dex-indexer-stack",
+    "url": "https://github.com/primodiumxyz/dex-indexer-stack",
     "directory": "./packages/indexer"
   },
   "license": "MIT",

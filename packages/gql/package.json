@@ -4,7 +4,7 @@
   "description": "GraphQL client for TypeScript with Hasura & Timescale support, for indexing Solana DEX trades and tokens.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/primodiumxyz/solana-dex-indexer-stack",
+    "url": "https://github.com/primodiumxyz/dex-indexer-stack",
     "directory": "./packages/gql"
   },
   "license": "MIT",
