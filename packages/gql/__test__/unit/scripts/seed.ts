@@ -1,6 +1,13 @@
 import { createClientNoCache, refreshTokenRollingStats30Min } from "../../lib/common";
 import { insertMockTradeHistory, Token, TokenWithStats, Trade } from "../../lib/mock";
 
+/**
+ * Seed the database with mock data.
+ *
+ * @param options.count - The number of random trades to insert (it will create 5% of this value as random tokens)
+ * @param options.from - The minimum date for the trades to be inserted
+ * @returns The {@link TokenWithStats} and {@link Trade} that were seeded
+ */
 export const seed = async (options: {
   count: number;
   from: Date;
@@ -26,10 +33,18 @@ export const seed = async (options: {
   return { tokens: _tokens.map((token) => getTokenWithStats(token, trades)), trades };
 };
 
+/**
+ * Get the {@link TokenWithStats} for a token.
+ *
+ * @param token - The {@link Token} to get the stats for
+ * @param trades - The entire array of {@link Trade} that were seeded
+ * @returns The {@link TokenWithStats}
+ */
 const getTokenWithStats = (token: Token, trades: Trade[]): TokenWithStats => {
   const tokenTrades = trades
     .filter((t) => t.mint === token.mint)
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
   // Round these to the upper minute to consider buckets of 1m in the query (latest minute is actually the latest 1min bucket)
   const thirtyMinutesAgo = new Date(Math.ceil(Date.now() / 60000) * 60000 - 30 * 60 * 1000);
   const oneMinuteAgo = new Date(Math.ceil(Date.now() / 60000) * 60000 - 60 * 1000);

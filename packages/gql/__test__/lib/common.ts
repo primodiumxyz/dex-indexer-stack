@@ -1,5 +1,14 @@
-import { createClient } from "../../src/index";
+import { createClient, GqlClient } from "../../src/index";
 
+/* ---------------------------------- UTILS --------------------------------- */
+/**
+ * Converts a JavaScript object to a PostgreSQL composite type string.
+ *
+ * This is used to format the token metadata as a PostgreSQL composite type when inserting trade history.
+ *
+ * @param obj - The object to convert
+ * @returns A string in PostgreSQL composite type format: (val1,val2,...)
+ */
 export const toPgComposite = (obj: Record<string, unknown>): string => {
   const values = Object.values(obj).map((val) => {
     if (val === null || val === undefined) return null;
@@ -38,7 +47,14 @@ export const toPgComposite = (obj: Record<string, unknown>): string => {
 };
 
 /* --------------------------------- CLIENTS -------------------------------- */
-export const createClientCached = async (cacheTime?: string) => {
+/**
+ * Creates a client that points to the cache server.
+ *
+ * @param cacheTime (optional) - A cache time header to set on the request to override the default (1h here will help
+ *   for benchmarking to make sure it stays).
+ * @returns The {@link GqlClient} instance
+ */
+export const createClientCached = async (cacheTime?: string): Promise<GqlClient> => {
   return await createClient({
     url: "http://localhost:8090/v1/graphql",
     hasuraAdminSecret: "password",
@@ -48,14 +64,24 @@ export const createClientCached = async (cacheTime?: string) => {
   });
 };
 
-export const createClientNoCache = async () => {
+/**
+ * Creates a client that points directly to the Hasura engine.
+ *
+ * @returns The {@link GqlClient} instance
+ */
+export const createClientNoCache = async (): Promise<GqlClient> => {
   return await createClient({
     url: "http://localhost:8080/v1/graphql",
     hasuraAdminSecret: "password",
   });
 };
 
-export const createClientCacheBypass = async () => {
+/**
+ * Creates a client that points to the cache server with a cache bypass header.
+ *
+ * @returns The {@link GqlClient} instance
+ */
+export const createClientCacheBypass = async (): Promise<GqlClient> => {
   return await createClient({
     url: "http://localhost:8090/v1/graphql",
     hasuraAdminSecret: "password",
@@ -65,6 +91,7 @@ export const createClientCacheBypass = async () => {
   });
 };
 
+/** Clears the entire cache on the cache server. */
 export const clearCache = async () => {
   try {
     const response = await fetch("http://localhost:8090/flush", {
@@ -79,7 +106,8 @@ export const clearCache = async () => {
   }
 };
 
-export const refreshTokenRollingStats30Min = async () => {
+/** Refreshes the 30min- token stats. */
+export const refreshTokenRollingStats30Min = async (): Promise<void> => {
   const gql = await createClientNoCache();
   const refreshRes = await gql.db.RefreshTokenRollingStats30MinMutation();
   if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success) {
@@ -87,9 +115,15 @@ export const refreshTokenRollingStats30Min = async () => {
   }
 };
 
-// This will include waiting for continuous aggregate to refresh
-//   & waiting for rolling stats to update
-//   & waiting for subscription to update
+/**
+ * Waits for a subscription to update.
+ *
+ * Note: This will update the token rolling stats and check if the provided condition is met every few seconds.
+ *
+ * @param verifyFn - A function that returns true if the subscription has updated
+ * @param options (optional) - Options for the wait
+ * @returns True if the subscription updated
+ */
 export const waitForSubscriptionUpdate = async (
   verifyFn: () => boolean,
   options?: { timeoutMs?: number; checkIntervalMs?: number },

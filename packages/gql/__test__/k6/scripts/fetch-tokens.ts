@@ -2,6 +2,11 @@ import fs from "fs";
 
 import { createClient } from "../../../src/index";
 
+/**
+ * Fetch the top tokens by volume from the database.
+ *
+ * @returns The tokens that were fetched
+ */
 const fetchTokens = async () => {
   const client = await createClient({
     url: `${process.env.HASURA_URL ?? ""}/v1/graphql`,

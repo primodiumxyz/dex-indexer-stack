@@ -22,25 +22,27 @@ describe("query tests", () => {
     trades = seedTrades;
   });
 
+  // Delete all seeded data after all tests
   afterAll(async () => {
     const res = await gql.db.DeleteTradeHistoryManyMutation({ mints: Array.from(new Set(tokens.map((t) => t.mint))) });
     assert(!res.error, res.error?.message);
   });
 
   it("GetTopTokensByVolumeQuery", async () => {
-    // Get the top 10 tokens by volume
+    // Get the top 10 tokens by 30min volume
     const res = await gql.db.GetTopTokensByVolumeQuery({ limit: 10 });
     assert(!res.error, res.error?.message);
     const topTokens = res.data?.token_rolling_stats_30min;
     assert(topTokens, "No top tokens returned");
 
-    // Sort expected tokens by 30min volume
+    // Sort seeded tokens by computed 30min volume
     const expectedTopTokens = tokens.sort((a, b) => b.volumeUsd30m - a.volumeUsd30m).slice(0, 10);
 
     topTokens.forEach((token, i) => {
       const expectedToken = expectedTopTokens[i];
       expect(token.mint).toBe(expectedToken.mint);
 
+      // Assert that the token stats are close enough to the expected values (due to floating point precision)
       expect(token.volume_usd_30m).toBeCloseTo(expectedToken.volumeUsd30m, 8);
       expect(token.trades_30m).toBeCloseTo(expectedToken.trades30m, 8);
       expect(token.price_change_pct_30m).toBeCloseTo(expectedToken.priceChangePct30m, 8);
@@ -52,6 +54,7 @@ describe("query tests", () => {
   });
 
   it("GetTokenMetadataQuery", async () => {
+    // Get the seeded token and its database metadata
     const expectedToken = tokens[0];
     const res = await gql.db.GetTokenMetadataQuery({ token: expectedToken.mint });
     assert(!res.error, res.error?.message);
@@ -59,6 +62,7 @@ describe("query tests", () => {
     const token = res.data?.token_rolling_stats_30min[0];
     assert(token, "No token returned");
 
+    // Assert that the token metadata is correct
     expect(token.mint).toBe(expectedToken.mint);
     expect(token.name).toBe(expectedToken.name);
     expect(token.symbol).toBe(expectedToken.symbol);
@@ -69,6 +73,7 @@ describe("query tests", () => {
     expect(token.external_url).toBe(expectedToken.externalUrl);
     expect(token.is_pump_token).toBe(expectedToken.isPumpToken);
 
+    // Assert that the token stats are correct
     expect(token.volume_usd_30m).toBeCloseTo(expectedToken.volumeUsd30m, 8);
     expect(token.trades_30m).toBeCloseTo(expectedToken.trades30m, 8);
     expect(token.price_change_pct_30m).toBeCloseTo(expectedToken.priceChangePct30m, 8);
@@ -79,6 +84,7 @@ describe("query tests", () => {
   });
 
   it("GetBulkTokenMetadataQuery", async () => {
+    // Get the metadata for all seeded tokens
     const res = await gql.db.GetBulkTokenMetadataQuery({
       tokens: tokens.sort((a, b) => a.mint.localeCompare(b.mint)).map((t) => t.mint),
     });
@@ -87,10 +93,13 @@ describe("query tests", () => {
     const tokensRes = res.data?.token_rolling_stats_30min;
     assert(tokensRes, "No tokens returned");
 
+    // Sort the returned tokens by mint
     tokensRes
       .sort((a, b) => a.mint.localeCompare(b.mint))
       .forEach((token, i) => {
         const expectedToken = tokens[i];
+
+        // Assert that the token metadata is correct
         expect(token.mint).toBe(expectedToken.mint);
         expect(token.name).toBe(expectedToken.name);
         expect(token.symbol).toBe(expectedToken.symbol);
@@ -101,6 +110,7 @@ describe("query tests", () => {
         expect(token.external_url).toBe(expectedToken.externalUrl);
         expect(token.is_pump_token).toBe(expectedToken.isPumpToken);
 
+        // Assert that the token stats are correct
         expect(token.volume_usd_30m).toBeCloseTo(expectedToken.volumeUsd30m, 8);
         expect(token.trades_30m).toBeCloseTo(expectedToken.trades30m, 8);
         expect(token.price_change_pct_30m).toBeCloseTo(expectedToken.priceChangePct30m, 8);
@@ -112,12 +122,14 @@ describe("query tests", () => {
   });
 
   it("GetTokenPricesSinceQuery", async () => {
+    // Get the price history for the first 10 seeded tokens
     tokens.slice(0, 10).forEach(async (token) => {
       const expectedPrices = trades
         .filter((t) => t.mint === token.mint)
         .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
         .filter((t) => t.createdAt >= new Date(Date.now() - 10 * 60 * 1000));
 
+      // Query the price history of each token
       const res = await gql.db.GetTokenPricesSinceQuery({
         token: token.mint,
         since: new Date(Date.now() - 10 * 60 * 1000),
@@ -127,6 +139,7 @@ describe("query tests", () => {
       const prices = res.data?.api_trade_history;
       assert(prices, "No prices returned");
 
+      // Assert that the price history is correct
       prices.forEach((price, i) => {
         expect(price.token_price_usd).toBeCloseTo(expectedPrices[i].priceUsd, 8);
       });
@@ -134,6 +147,7 @@ describe("query tests", () => {
   });
 
   it("GetTokenCandlesSinceQuery", async () => {
+    // Get the candles for the first 10 seeded tokens
     tokens.slice(0, 10).forEach(async (token) => {
       const since = new Date(Math.floor(Date.now() / 60000) * 60000);
       since.setMinutes(since.getMinutes() - 10);
@@ -144,6 +158,7 @@ describe("query tests", () => {
         .filter((t) => t.createdAt >= since)
         .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
+      // Query the candles for this token
       const res = await gql.db.GetTokenCandlesSinceQuery({
         token: token.mint,
         since,
@@ -153,9 +168,12 @@ describe("query tests", () => {
       const candles = res.data?.token_candles_history_1min;
       if (!candles) throw new Error("No candles returned");
 
+      // Get the expected candles from the trades
       const expectedCandles = getCandlesFromTrades(tokenTrades, since);
+      // Sort the returned candles by bucket
       const sortedCandles = candles.sort((a, b) => new Date(b.bucket).getTime() - new Date(a.bucket).getTime());
 
+      // Assert that the candles are correct
       sortedCandles.forEach((candle, i) => {
         const expectedCandle = expectedCandles[i];
         expect(new Date(candle.bucket).getTime()).toBe(expectedCandle.bucket.getTime());
