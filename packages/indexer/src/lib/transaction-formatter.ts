@@ -46,7 +46,7 @@ export class TransactionFormatter {
     if (!meta) return;
 
     // Form the signatures array
-    const signatures = rawTx?.transaction?.signatures.map((s: Uint8Array) => utils.bytes.bs58.encode(s));
+    const signatures = rawTx?.transaction?.signatures.map((s) => utils.bytes.bs58.encode(s));
 
     // Form the message object
     const message = this.formTxnMessage(rawTx?.transaction?.message);
@@ -83,14 +83,12 @@ export class TransactionFormatter {
           numReadonlyUnsignedAccounts: message.header?.numReadonlyUnsignedAccounts ?? 0,
         },
         recentBlockhash: utils.bytes.bs58.encode(message.recentBlockhash),
-        accountKeys: message.accountKeys?.map((d: Uint8Array) => utils.bytes.bs58.encode(d)),
-        instructions: message.instructions.map(
-          ({ data, programIdIndex, accounts }: { data: Uint8Array; programIdIndex: number; accounts: Uint8Array }) => ({
-            programIdIndex: programIdIndex,
-            accounts: [...accounts],
-            data: utils.bytes.bs58.encode(data),
-          }),
-        ),
+        accountKeys: message.accountKeys?.map((d) => utils.bytes.bs58.encode(d)),
+        instructions: message.instructions.map(({ data, programIdIndex, accounts }) => ({
+          programIdIndex: programIdIndex,
+          accounts: [...accounts],
+          data: utils.bytes.bs58.encode(data),
+        })),
       });
     } else {
       return new MessageV0({
@@ -100,14 +98,12 @@ export class TransactionFormatter {
           numReadonlyUnsignedAccounts: message.header?.numReadonlyUnsignedAccounts ?? 0,
         },
         recentBlockhash: utils.bytes.bs58.encode(message.recentBlockhash),
-        staticAccountKeys: message.accountKeys.map((k: Uint8Array) => new PublicKey(utils.bytes.bs58.encode(k))),
-        compiledInstructions: message.instructions.map(
-          ({ programIdIndex, accounts, data }: { programIdIndex: number; accounts: Uint8Array; data: Uint8Array }) => ({
-            programIdIndex: programIdIndex,
-            accountKeyIndexes: [...accounts],
-            data: data,
-          }),
-        ),
+        staticAccountKeys: message.accountKeys.map((k) => new PublicKey(utils.bytes.bs58.encode(k))),
+        compiledInstructions: message.instructions.map(({ programIdIndex, accounts, data }) => ({
+          programIdIndex: programIdIndex,
+          accountKeyIndexes: [...accounts],
+          data: data,
+        })),
         addressTableLookups:
           message.addressTableLookups?.map(({ accountKey, writableIndexes, readonlyIndexes }) => ({
             writableIndexes: [...writableIndexes],
