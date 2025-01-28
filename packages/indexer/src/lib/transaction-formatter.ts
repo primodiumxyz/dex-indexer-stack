@@ -109,21 +109,11 @@ export class TransactionFormatter {
           }),
         ),
         addressTableLookups:
-          message.addressTableLookups?.map(
-            ({
-              accountKey,
-              writableIndexes,
-              readonlyIndexes,
-            }: {
-              accountKey: any;
-              writableIndexes: any;
-              readonlyIndexes: any;
-            }) => ({
-              writableIndexes: writableIndexes || [],
-              readonlyIndexes: readonlyIndexes || [],
-              accountKey: new PublicKey(Buffer.from(accountKey, "base64")),
-            }),
-          ) || [],
+          message.addressTableLookups?.map(({ accountKey, writableIndexes, readonlyIndexes }) => ({
+            writableIndexes: [...writableIndexes],
+            readonlyIndexes: [...readonlyIndexes],
+            accountKey: new PublicKey(utils.bytes.bs58.encode(accountKey)),
+          })) || [],
       });
     }
   }
@@ -148,22 +138,18 @@ export class TransactionFormatter {
         meta.loadedWritableAddresses || meta.loadedReadonlyAddresses
           ? {
               writable:
-                meta.loadedWritableAddresses?.map(
-                  (address: Uint8Array) => new PublicKey(utils.bytes.bs58.encode(address)),
-                ) || [],
+                meta.loadedWritableAddresses?.map((address) => new PublicKey(utils.bytes.bs58.encode(address))) || [],
               readonly:
-                meta.loadedReadonlyAddresses?.map(
-                  (address: Uint8Array) => new PublicKey(utils.bytes.bs58.encode(address)),
-                ) || [],
+                meta.loadedReadonlyAddresses?.map((address) => new PublicKey(utils.bytes.bs58.encode(address))) || [],
             }
           : undefined,
       innerInstructions:
-        meta.innerInstructions?.map((i: { index: number; instructions: any }) => ({
+        meta.innerInstructions?.map((i) => ({
           index: i.index || 0,
-          instructions: i.instructions.map((instruction: any) => ({
+          instructions: i.instructions.map((instruction) => ({
             programIdIndex: instruction.programIdIndex,
             accounts: [...instruction.accounts],
-            data: utils.bytes.bs58.encode(Buffer.from(instruction.data || "", "base64")),
+            data: utils.bytes.bs58.encode(instruction.data),
           })),
         })) || [],
     };
