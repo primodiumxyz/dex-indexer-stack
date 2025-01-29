@@ -18,8 +18,8 @@ type CreateClientOptions = {
 /**
  * Creates a tRPC client to talk to a server.
  *
- * @param {CreateClientOptions} options See `CreateClientOptions`.
- * @returns {CreateTRPCProxyClient<AppRouter>} A typed tRPC client.
+ * @param options - See {@link CreateClientOptions}.
+ * @returns A typed tRPC {@link CreateTRPCProxyClient} client typed to the {@link AppRouter}.
  */
 export function createClient({ httpUrl, wsUrl, httpHeaders }: CreateClientOptions): CreateTRPCProxyClient<AppRouter> {
   const wsClient = createWSClient({
