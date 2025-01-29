@@ -123,6 +123,12 @@ const gql = await createClient({
   url: "http://localhost:8090/v1/graphql",
   hasuraAdminSecret: "your-admin-secret",
 });
+
+// Or no need to await in a browser environment
+const gql = createClient<"web">({
+  url: "http://localhost:8090/v1/graphql",
+  hasuraAdminSecret: "your-admin-secret",
+});
 ```
 
 To perform operations, you can use the `db` object, which contains all the queries, subscriptions and mutations.
