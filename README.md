@@ -5,7 +5,7 @@
 This monorepo is composed of two libraries available from npm, as well as examples and documentation. The libraries are:
 
 - [`@primodiumxyz/dex-indexer`](https://www.npmjs.com/package/@primodiumxyz/dex-indexer): The indexer for Solana DEX trades and token metadata
-- [`@primodiumxyz/dex-graphql`](https://www.npmjs.com/package/@primodiumxyz/dex-graphql): The GraphQL endpoint and Hasura/Timescale databases management framework
+- [`@primodiumxyz/dex-graphql`](https://www.npmjs.com/package/@primodiumxyz/dex-graphql): The GraphQL client and Hasura/Timescale databases management framework
 
 See the dedicated README in each package for detailed documentation.
 
