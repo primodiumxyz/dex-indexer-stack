@@ -1,4 +1,4 @@
-name: NPM Build and Publish
+name: npm Build and Publish
 
 on: [push]
 
