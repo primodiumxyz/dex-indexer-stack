@@ -210,6 +210,6 @@ If you wish to contribute to the package, please open an issue first to make sur
 
 ## License
 
-This project is licensed under the MIT License - see [LICENSE](./LICENSE) for details.
+This project is licensed under the MIT License - see [LICENSE](../../LICENSE) for details.
 
 The library contains a few chunks of code copied and [modified from Shyft](https://github.com/Shyft-to/solana-tx-parser-public), especially in `lib/parsers`, mainly for fixing formatting inconsistencies or missing types, and easier integration with the rest of the codebase. It is as best as possible documented above each block of code inside the JSDoc comments.

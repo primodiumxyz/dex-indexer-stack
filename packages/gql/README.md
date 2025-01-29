@@ -481,4 +481,4 @@ If you wish to contribute to the package, please open an issue first to make sur
 
 ## License
 
-This project is licensed under the MIT License - see [LICENSE](./LICENSE) for details.
+This project is licensed under the MIT License - see [LICENSE](../../LICENSE) for details.
