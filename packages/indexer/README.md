@@ -101,9 +101,9 @@ The variables with no default value are required.
 2. Run
 
 ```sh
-local:dex-indexer
+local-dex-indexer
 # or specify the path to your .env file (install @dotenvx/dotenvx first)
-dotenvx run -f ./path/to/.env --quiet -- local:dex-indexer
+dotenvx run -f ./path/to/.env --quiet -- local-dex-indexer
 ```
 
 ## Usage
