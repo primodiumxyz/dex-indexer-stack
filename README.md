@@ -39,11 +39,11 @@ The codebase is structured as a `pnpm` monorepo with the following structure:
 
 ```ml
 examples - "Example integrations with the indexer stack"
-├── [dashboard](./examples/dashboard) - "A React explorer for top-ranked tokens by 30-min volume, with price and candlestick charts"
-└── [server](./examples/server) - "A Fastify server that exposes endpoints and performs periodic tasks on the database"
+├── dashboard - "A React explorer for top-ranked tokens by 30-min volume, with price and candlestick charts"
+└── server - "A Fastify server that exposes endpoints and performs periodic tasks on the database"
 packages - "Libraries that compose the indexer stack"
-│── [indexer](./packages/indexer) - "The indexer for Solana DEX trades and token metadata"
-└── [gql](./packages/gql) - "The GraphQL endpoint and Hasura/Timescale databases management framework"
+│── indexer - "The indexer for Solana DEX trades and token metadata"
+└── gql - "The GraphQL endpoint and Hasura/Timescale databases management framework"
 resources - "Examples and resources for running and understanding the stack"
 ```
 
