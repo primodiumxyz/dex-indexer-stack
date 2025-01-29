@@ -43,7 +43,7 @@ examples - "Example integrations with the indexer stack"
 └── server - "A Fastify server that exposes endpoints and performs periodic tasks on the database"
 packages - "Libraries that compose the indexer stack"
 │── indexer - "The indexer for Solana DEX trades and token metadata"
-└── gql - "The GraphQL endpoint and Hasura/Timescale databases management framework"
+└── gql - "The GraphQL client and Hasura/Timescale databases management framework"
 resources - "Examples and resources for running and understanding the stack"
 ```
 
