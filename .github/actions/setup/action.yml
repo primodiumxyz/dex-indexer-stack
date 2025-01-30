@@ -16,5 +16,6 @@ runs:
         cache: pnpm
 
     - name: Create env file for prepare scripts
+      shell: bash
       run: |
         echo "NODE_ENV=production" > .env
