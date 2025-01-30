@@ -16,10 +16,10 @@ The purpose of this example is to demonstrate which kind of data is available fo
 
 2. Configure the environment variables in the root `.env` file (or don't, and use the defaults):
 
-| Variable          | Description                          | Default                 |
-| ----------------- | ------------------------------------ | ----------------------- |
-| `NODE_ENV`        | Environment (local, dev, test, prod) | `local`                 |
-| `VITE_HASURA_URL` | URL of the Hasura endpoint           | `http://localhost:8090` |
+| Variable          | Description                     | Default                 |
+| ----------------- | ------------------------------- | ----------------------- |
+| `NODE_ENV`        | Environment (local, production) | `local`                 |
+| `VITE_HASURA_URL` | URL of the Hasura endpoint      | `http://localhost:8090` |
 
 ## Usage
 
