@@ -30,6 +30,15 @@ jobs:
         working-directory: packages/gql
         run: npx --package semantic-release --package semantic-release-monorepo semantic-release --branches main
 
+      - name: Update Indexer Workspace Dependencies
+        if: github.ref == 'refs/heads/main'
+        working-directory: packages/indexer
+        run: |
+          # Get the latest published version of the GQL package
+          LATEST_GQL_VERSION=$(npm view @primodiumxyz/dex-graphql version)
+          # Update the dependency in package.json
+          npm pkg set dependencies.@primodiumxyz/dex-graphql="^${LATEST_GQL_VERSION}"
+
       - name: Release Indexer Package
         if: github.ref == 'refs/heads/main'
         env:

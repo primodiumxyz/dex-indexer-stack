@@ -52,9 +52,6 @@
     "tsup": "^8.3.6",
     "tsx": "^3.12.6"
   },
-  "bundleDependencies": [
-    "@primodiumxyz/dex-graphql"
-  ],
   "publishConfig": {
     "access": "public"
   }
