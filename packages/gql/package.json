@@ -1,6 +1,6 @@
 {
   "name": "@primodiumxyz/dex-graphql",
-  "version": "0.0.1",
+  "version": "0.0.0-semantically-released",
   "description": "GraphQL client for TypeScript with Hasura & Timescale support, for indexing Solana DEX trades and tokens.",
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 {
   "name": "@primodiumxyz/dex-indexer",
-  "version": "0.0.1",
+  "version": "0.0.0-semantically-released",
   "description": "TypeScript indexer for DEX trades on Solana using Yellowstone GRPC.",
   "repository": {
     "type": "git",
@@ -52,6 +52,9 @@
     "tsup": "^8.3.6",
     "tsx": "^3.12.6"
   },
+  "bundleDependencies": [
+    "@primodiumxyz/dex-graphql"
+  ],
   "publishConfig": {
     "access": "public"
   }
