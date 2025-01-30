@@ -7,6 +7,13 @@ This monorepo is composed of two libraries available from npm, as well as exampl
 - [`@primodiumxyz/dex-indexer`](https://www.npmjs.com/package/@primodiumxyz/dex-indexer): The indexer for Solana DEX trades and token metadata
 - [`@primodiumxyz/dex-graphql`](https://www.npmjs.com/package/@primodiumxyz/dex-graphql): The GraphQL client and Hasura/Timescale databases management framework
 
+It is also responsible for building and publishing Docker images for both the indexer and databases to the GitHub Container Registry, that can be used for running the two packages in production, e.g. inside an AWS ECS instance. You will find examples on how to use them [in the resources](./resources/).
+
+These images are available at:
+
+- [`sdi-indexer`](https://github.com/primodiumxyz/dex-indexer-stack/pkgs/container/sdi-indexer)
+- [`sdi-hasura-cache`](https://github.com/primodiumxyz/dex-indexer-stack/pkgs/container/sdi-hasura-cache)
+
 See the dedicated README in each package for detailed documentation.
 
 - [`DEX Indexer`](./packages/indexer/README.md)
