@@ -22,9 +22,18 @@ jobs:
       - name: Build
         uses: ./.github/actions/build
 
-      - name: Release
-        if: github.ref == 'refs/heads/main' # Only run release on main branch
+      - name: Release GQL Package
+        if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: packages/gql
+        run: npx semantic-release --branches main
+
+      - name: Release Indexer Package
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: packages/indexer
         run: npx semantic-release --branches main
