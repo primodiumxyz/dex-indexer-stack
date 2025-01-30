@@ -11,8 +11,8 @@ It is also responsible for building and publishing Docker images for both the in
 
 These images are available at:
 
-- [`sdi-indexer`](https://github.com/primodiumxyz/dex-indexer-stack/pkgs/container/sdi-indexer)
-- [`sdi-hasura-cache`](https://github.com/primodiumxyz/dex-indexer-stack/pkgs/container/sdi-hasura-cache)
+- [`sdi-indexer`](https://github.com/primodiumxyz/dex-indexer-stack/pkgs/container/sdi-indexer) — [example usage](./resources/indexer.docker-compose.yaml)
+- [`sdi-hasura-cache`](https://github.com/primodiumxyz/dex-indexer-stack/pkgs/container/sdi-hasura-cache) — [example usage](./resources/hasura.docker-compose.yaml)
 
 See the dedicated README in each package for detailed documentation.
 
