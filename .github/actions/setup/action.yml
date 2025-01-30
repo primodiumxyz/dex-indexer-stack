@@ -14,3 +14,8 @@ runs:
         node-version: 20.x
         registry-url: https://registry.npmjs.org
         cache: pnpm
+
+    - name: Create env file for prepare scripts
+      shell: bash
+      run: |
+        echo "NODE_ENV=production" > .env

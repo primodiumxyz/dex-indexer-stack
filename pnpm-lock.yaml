@@ -191,9 +191,6 @@ importers:
         specifier: ^3.21.4
         version: 3.24.1
     devDependencies:
-      '@dotenvx/dotenvx':
-        specifier: ^1.14.1
-        version: 1.33.0
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.3.0
         version: 4.4.1(prettier@3.4.2)

@@ -79,5 +79,8 @@
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "3.0.4",
     "yaml": "^2.6.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

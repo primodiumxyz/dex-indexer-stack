@@ -13,6 +13,7 @@ import { parseEnv } from "./parseEnv";
 
 config({ path: "../../.env" });
 
+// Validate environment variables
 export const env = parseEnv();
 
 // @see https://fastify.dev/docs/latest/
@@ -21,6 +22,7 @@ export const server = fastify({
   logger: true,
 });
 
+// Register plugins
 await server.register(import("@fastify/compress"));
 await server.register(import("@fastify/cors"));
 await server.register(fastifyWebsocket);
@@ -30,6 +32,11 @@ server.get("/healthz", (_, res) => res.code(200).send());
 server.get("/readyz", (_, res) => res.code(200).send());
 server.get("/", (_, res) => res.code(200).send("hello world"));
 
+/**
+ * Starts the server
+ *
+ * @returns The server instance
+ */
 export const start = async () => {
   try {
     if (!env.HASURA_URL && env.NODE_ENV === "production") {
