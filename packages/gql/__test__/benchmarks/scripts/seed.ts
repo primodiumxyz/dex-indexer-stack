@@ -2,6 +2,12 @@ import { createClientNoCache } from "../../lib/common";
 import { insertMockTradeHistory } from "../../lib/mock";
 import { DEFAULT_START_DATE, DEFAULT_TRADES_AMOUNT } from "../config";
 
+/**
+ * Seed the database with mock data according the benchmark config.
+ *
+ * @see {@link DEFAULT_TRADES_AMOUNT}
+ * @see {@link DEFAULT_START_DATE}
+ */
 const seed = async () => {
   const client = await createClientNoCache();
 

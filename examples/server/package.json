@@ -1,21 +1,12 @@
 {
   "name": "server",
   "version": "0.0.0",
-  "description": "An example tRPC server for the indexer stack, providing protected API endpoints for making database mutations and/or performing periodic tasks.",
+  "description": "An example tRPC server for the indexer stack, providing API endpoints for making database mutations and/or performing periodic tasks.",
   "license": "MIT",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "types": "src/index.ts",
-  "files": [
-    "src"
-  ],
   "scripts": {
     "lint": "eslint .",
-    "start": "tsx bin/index",
-    "types:dev": "tsc --watch",
-    "types:test": "tsc --noEmit --skipLibCheck"
+    "start": "tsx bin/index"
   },
   "dependencies": {
     "@fastify/compress": "^6.5.0",
@@ -31,7 +22,6 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.14.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.3.0",
     "@types/debug": "^4.1.7",
     "@types/ws": "^8.5.12",

@@ -1,12 +1,11 @@
 {
   "name": "dashboard",
   "version": "0.0.0",
-  "description": "An example interface for the indexer stack, showing top tokens by 30min volume, including metadata, line & candle charts.",
+  "description": "An example interface for the indexer stack, showing top tokens by 30min volume with line & candle charts.",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

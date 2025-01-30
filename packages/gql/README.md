@@ -1,167 +1,293 @@
-# GQL Package
+# DEX GraphQL
 
-The GQL package is a GraphQL client implementation for interacting with a Hasura-based backend. It provides a type-safe and efficient way to perform queries, mutations, and subscriptions.
+**A type-safe GraphQL client for querying DEX trades and tokens, built on a Hasura backend and supercharged with TimescaleDB, for optimized time-series capabilities.**
 
-## Features
+It is best used in conjunction with the [dex-indexer](https://github.com/primodiumxyz/dex-indexer-stack/tree/main/packages/indexer) package, which indexes trades and tokens metadata into the database with super-low latency.
 
-- Type-safe GraphQL operations using `gql.tada`
-- Support for queries, mutations, and subscriptions
-- Automatic generation of GraphQL schema
-- Integration with Hasura backend
-- Test suite for GraphQL operations
+_DEX GraphQL is available from npm
+as
+[`@primodiumxyz/dex-graphql`](https://www.npmjs.com/package/@primodiumxyz/dex-graphql)._
 
-## Installation
+## Table of contents
 
-To install the package, run:
+- [Introduction](#introduction)
+  - [Overview](#overview)
+  - [Notable Features](#notable-features)
+  - [Installation](#installation)
+  - [Quickstart](#quickstart)
+- [Usage](#usage)
+  - [Docker](#docker)
+  - [TypeScript](#typescript)
+  - [Cache](#cache)
+    - [Overview](#overview)
+    - [AWS](#aws)
+    - [Querying](#querying)
+  - [Development](#development)
+    - [Setup](#setup)
+    - [Working with Hasura](#working-with-hasura)
+    - [Making Changes](#making-changes)
+    - [Testing](#testing)
+    - [Benchmarking](#benchmarking)
+    - [Metrics/stress-testing](#metrics-stress-testing)
+  - [Production](#production)
+    - [Deployment](#deployment)
+- [Details](#details)
+  - [Timescale API](#timescale-api)
+    - [Reading](#reading)
+    - [Refreshing](#refreshing)
+  - [Continuous Aggregates](#continuous-aggregates)
+  - [Structure](#structure)
+  - [References](#references)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Introduction
+
+### Overview
+
+This package provides a full infrastructure and interface for storing and querying trade and token data.
+
+Meaning, a local-first Hasura + TimescaleDB + caching layer configuration, with convenient management and historical tracking of migrations and metadata with the remote instances.
+
+Development and shipping to production can be done almost entirely from this repository, using the provided commands. Or if you don't need to add anything, it can be as simple as copying the [`hasura.docker-compose.yaml`](../../resources/hasura.docker-compose.yaml) file to some machine, filling in the environment variables, and running it.
+
+Although it is intended to be used with the [dex-indexer](https://github.com/primodiumxyz/dex-indexer-stack/tree/main/packages/indexer) package, it could also very well be adapted to any other indexing solution, on any other chain.
+
+!!! The way it's intended to use is that you need to refresh token rolling stats every few seconds from some scheduled job, as it lifts up the workload and computation time from the user-initiated queries to some background job. !!!
+
+On a high-level, the way this database is optimized is that it uses continuous aggregates to compute relevant metrics into 1-minute buckets, and as a main entry-point provides a very focused 30-minute rolling stats view **that needs to be refreshed every few seconds from a scheduled job**. This way, we can lift up the workload and computation time from the user-initiated queries to some background job.
+
+This doesn't prevent querying all trades during a certain time period, but rather provides an opinionated abstraction over intensive metrics, which is optimized for a specific use case (here 30-minute + 1-minute metrics). This can be easily customized.
+
+### Notable Features
+
+- **TypeScript-first**: Type-safe GraphQL operations that can be customized
+- **Convenient management**: Local and remote database migration and metadata management
+- **Optimized**: Optimized queries and contionous aggregation for DEX trade and token metrics
+- **GraphQL/TypeScript sync**: Automatic sync of GraphQL schema and TypeScript types
+- **Caching**: Built-in caching layer using Redis, available as a Docker image from anywhere
+- **Testing**: Full testing suite, with benchmarking and stress-testing
+- **Integration**: Built-in integration with [dex-indexer](https://github.com/primodiumxyz/dex-indexer-stack/tree/main/packages/indexer); plug and play with the indexer to index trades and tokens into the database
+  - This includes querying 30-minute stats for all indexed tokens, price updates for a token since a certain time, as well as standardized candlestick data
+
+### Installation
+
+Just install the package from npm, preferably with pnpm.
 
 ```bash
-pnpm install @tub/gql
+pnpm add @primodiumxyz/dex-graphql
+```
+
+### Quickstart
+
+1. Configuration
+
+Add the following environment variables to your `.env` file:
+
+| Variable              | Description           | Default                 |
+| --------------------- | --------------------- | ----------------------- |
+| `NODE_ENV`            | Node environment      | `local`                 |
+| `HASURA_URL`          | Hasura URL            | `http://localhost:8090` |
+| `HASURA_ADMIN_SECRET` | Hasura admin secret   |                         |
+| `CACHE_TIME`          | Cache time in seconds | `30`                    |
+| `REDIS_PASSWORD`      | Redis password        | `password`              |
+
+All of them can be left empty if you are running the stack locally.
+
+2. Run
+
+```sh
+local:dex-graphql
+# or without the local Hasura console
+local:dex-graphql:ci
+# or specify the path to your .env file (install @dotenvx/dotenvx first)
+dotenvx run -f ./path/to/.env --quiet -- local:dex-graphql
 ```
 
 ## Usage
 
-### Creating a Client
+### Docker
+
+An example [`hasura.docker-compose.yaml`](../../resources/hasura.docker-compose.yaml) file is available in the [resources](../../resources) folder. It contains all the necessary configuration to run the Hasura instance, along with the cache server.
+
+If you would like to run the TimescaleDB instance in Docker as well, you can use the development [`docker-compose.yaml`](./docker-compose.yaml) file as reference. Otherwise, you can setup Timescale with their cloud offering, and point the `TIMESCALE_DATABASE_URL` environment variable to your Timescale instance.
+
+### TypeScript
 
 To create a GraphQL client:
 
 ```typescript
-import { createClient } from "@tub/gql";
+import { createClient } from "@primodiumxyz/dex-graphql";
 
 const gql = await createClient({
   url: "http://localhost:8090/v1/graphql",
   hasuraAdminSecret: "your-admin-secret",
 });
-```
 
-### Performing Operations
-
-#### Queries
-
-```typescript
-const result = await gql.db.GetAllTokensQuery();
-```
-
-#### Mutations
-
-```typescript
-const result = await gql.db.RegisterNewUserMutation({
-  amount: "1000000000000000000",
-  username: "test_user",
+// Or no need to await in a browser environment
+const gql = createClient<"web">({
+  url: "http://localhost:8090/v1/graphql",
+  hasuraAdminSecret: "your-admin-secret",
 });
 ```
 
-#### Subscriptions
+To perform operations, you can use the `db` object, which contains all the queries, subscriptions and mutations.
 
 ```typescript
-const subscription = gql.db.GetLatestTokensSubscription({
-  limit: 10,
+// Query the top 10 tokens by latest 30min volume
+const topTokens = await client.db.GetTopTokensByVolumeQuery({
+  minRecentTrades: "10", // with at least 10 trades in the last minute
+  minRecentVolume: "1000", // with at least $1,000 volume in the last minute
+  limit: 10, // limit to 10 tokens
 });
 
-subscription.subscribe({
-  next: (result) => {
-    console.log(result.data);
-  },
-  error: (error) => {
-    console.error(error);
-  },
-});
+if (topTokens.error || !topTokens.data?.token_rolling_stats_30min.length) {
+  throw new Error(`No tokens found: ${topTokens.error?.message ?? "Unknown error"}`);
+}
+
+console.log(topTokens.data?.token_rolling_stats_30min[0]);
+// {
+//   mint: "ABC...DEF",
+//   name: "Token Name",
+//   symbol: "TKN",
+//   ...
+// }
 ```
 
-## Development
+```typescript
+// Subscribe to price updates for a token, starting from the last 10 minutes
+const subscription = client.db
+  .GetTokenPricesSinceSubscription({
+    token: "ABC...DEF", // the token to subscribe to
+    since: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
+  })
+  .subscribe((data) => {
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
 
-> **NOTE:** You must have Docker installed to run the local Hasura instance.
+    console.log(data);
+    // [
+    //   {
+    //     token_price_usd: 0.0012753,
+    //     volume_usd: 4570,
+    //     created_at: 2025-01-29T12:00:00Z,
+    //   },
+    //   ...
+    // ]
+  });
 
-### Setup
+// Sometime later
+subscription.unsubscribe();
+```
 
-1. Install dependencies:
+```typescript
+// Insert some trades (although this is internally handled by the indexer, but just as reference)
+const result = await client.db.InsertTradeHistoryManyMutation({
+  trades: [
+    {
+      token_mint: "ABC...DEF",
+      ...
+    },
+  ],
+});
 
-   ```bash
-   pnpm install
+if (result.error) throw new Error(result.error.message);
+console.log(result.data?.insert_api_trade_history);
+// {
+//   affected_rows: 1,
+// }
+
+// Or refresh the token rolling stats, which is the main data source for consumption by the frontend
+const result = await client.db.RefreshTokenRollingStats30MinMutation();
+
+if (result.error) throw new Error(result.error.message);
+console.log(result.data?.api_refresh_token_rolling_stats_30min);
+// {
+//   id: "123",
+//   success: true,
+// }
+```
+
+### Cache
+
+#### Overview
+
+This package also includes [a cache server](./src/cache/server.ts) using Redis, which is used to cache the GraphQL queries for a certain amount of time. This is useful to reduce the load on the database and improve the performance of the queries.
+
+This package is available from the GitHub Container Registry as [`ghcr.io/primodiumxyz/sdi-hasura-cache:main`](https://github.com/primodiumxyz/dex-indexer-stack/pkgs/container/sdi-hasura-cache).
+
+It can be simply included as a service in the `docker-compose.yaml` file; any queries would just need to point to the `8090` port (instead of the `8080` port of the Hasura engine).
+
+A note on this: although mutation operations hitting the cache server will be properly redirected directly to the Hasura engine, the cache server does not support subscriptions. Meaning that you will need to set the Websocket connection to point to the Hasura engine instead (port `8080`).
+
+#### AWS
+
+On AWS, this can be done by configuring a rule on the load balancer to point to different ports based on the headers:
+
+1. websocket-rule:
+   - **HTTP Header** Upgrade is websocket, **AND**
+   - **Path Pattern** is `/v1/graphql`
+   - -> Forward to port `8080`
+2. cache-rule:
+   - **Path Pattern** is `/v1/graphql`
+   - -> Forward to port `8090`
+3. Default (any other path, e.g. `/console`):
+   - -> Forward to port `8080`
+
+#### Querying
+
+When performing a query, you can also set the `x-cache-time` header to the number of seconds you want to cache the query for. This will override the default cache time. The cache can also be bypassed by setting the `x-cache-bypass` header to `1`.
+
+### Development
+
+#### Setup
+
+1. Install Docker on your machine (or whatever containerization tool you prefer)
+2. Clone the repository:
+
+   ```sh
+   git clone https://github.com/primodiumxyz/dex-indexer-stack.git
    ```
 
-2. Set up the Hasura backend:
-   ```bash
-   pnpm run dev
-   # or from the root of the monorepo
-   pnpm run dev:gql
+3. Install the dependencies:
+
+   ```sh
+   pnpm i
    ```
 
-### Making Changes
+4. Run
 
-First, create a new issue on Linear and open a new branch/Github pull request. Do the following:
+   a. everything (indexer & database) from root dir with:
 
-1. After running `pnpm run dev`, launch the Hasura GUI at http://localhost:9695 if it doesn't automatically.
-2. Make changes to the database in the Hasura GUI.
+   ```sh
+   pnpm dev
+   ```
 
-<img width="1840" alt="image" src="https://github.com/user-attachments/assets/4ba39cfa-6717-48fe-91bf-9cda9882efbe">
+   b. only the database
 
-3. A new `up.sql` file will be created in a new folder in `packages/migrations/default`. Check that the changes are valid. In some cases, you may need to write the `down.sql` file as well as hasura may not be able to automatically generate it.
+   ```sh
+   cd packages/gql
+   pnpm dev
+   # or without the Hasura console
+   pnpm dev:ci
+   ```
 
-<img width="1629" alt="image" src="https://github.com/user-attachments/assets/8769d3de-2038-41e0-9166-d38794279dd9">
+You can also build the package for production at any point:
 
-> **NOTE:** After making changes you find that you have a lot of migrations. We can squash them down to a single migration if needed:
->
-> ```bash
-> # squash all migrations from version 123 to the latest one:
-> hasura migrate squash --name "some_name" --from 123
-> ```
-
-5. Commit the changes and open a pull request.
-
-### Testing
-
-Run the test suite:
-
-```bash
-pnpm test
-```
-
-For watch mode:
-
-```bash
-pnpm test:watch
-```
-
-For coverage:
-
-```bash
-pnpm test:coverage
-```
-
-### Benchmarking
-
-Results are stored in `__test__/benchmarks/output/`.
-
-```bash
-pnpm dev:ci
-pnpm benchmark # this will seed the database with `n` trades (see `__test__/benchmarks/config.ts`) and run the benchmarks
-```
-
-### Metrics/stress-testing
-
-```bash
-# Install k6
-brew install k6
-
-# Run the database
-cd packages/gql && pnpm dev:ci
-# Run local analysis (seeding, metrics with dashboard and output to file)
-pnpm k6:local
-# or without seeding first
-pnpm k6:local:skip-seed
-# or on the remote database
-pnpm k6:remote
-```
+    ```sh
+    cd packages/gql
+    pnpm build
+    ```
 
 ### Working with Hasura
 
-Hasura migrations and metadata are two key components that work together to manage your Hasura project's state and schema. The local console, accessed through the Hasura CLI, provides a user-friendly interface to interact with these components. Here's how they work together:
+Hasura **migrations and metadata** are two key components that work together to manage your Hasura project's state and schema. The local console, accessed through the Hasura CLI, provides a user-friendly interface to interact with these components. Here's how they work together:
 
 1. **Local Console**:
-   The local console is launched using the `pnpm hasura console` command. It provides a web interface to manage your Hasura project. When you make changes in the console. This is the preferred/simplest method to make changes:
+   The local console is launched using the `pnpm local:console` command. It provides a web interface to manage your Hasura project, as well as TimescaleDB as a data source. This is the preferred/simplest method to make changes:
    - Database schema changes trigger the creation of new migration files
    - Configuration changes update the metadata files
-     > **MAKE SURE TO USE THE LOCAL CONSOLE LAUNCHED FROM THE CLI(http://locahost:9695) FOR SCHEMA AND METADATA CHANGES TO BE REFLECTED IN THE PROJECT FILES. BROWSER CONSOLE WILL NOT WORK AS THE FILES WONT BE UPDATED/GENERATED LOCALLY FOR YOU TO COMMIT.**
 2. **Migrations**:
    Migrations are used to manage changes to your database schema over time. When you make changes to your database structure using the local console, Hasura automatically generates migration files. These files contain SQL statements that represent the changes made to your database schema.
 
@@ -172,7 +298,7 @@ Hasura migrations and metadata are two key components that work together to mana
    - `pnpm hasura migrate status`: Shows the status of migrations
 
 3. **Metadata**:
-   Metadata represents the configuration of your Hasura instance, including table relationships, permissions, and custom actions. When you make changes in the console, such as creating relationships or setting up permissions, these changes are reflected in the metadata.
+   Metadata represents the configuration of your databases, including table relationships, permissions, and custom actions. When you make changes in the console, such as creating relationships, setting up permissions, or creating/modifying native queries and logical models, these changes are reflected in the metadata.
 
    Manual commands for managing metadata are:
 
@@ -182,36 +308,183 @@ Hasura migrations and metadata are two key components that work together to mana
 
 4. **Working in Tandem**:
 
-   - When you run `pnpm hasura console`, it starts a local server that watches for changes made in the console.
+   - When you run `pnpm local:console`, it starts a local server that watches for changes made in the console.
    - As you make changes in the console, migration files and metadata files are automatically updated in your project directory.
    - You can then use version control to track these changes and collaborate with your team.
-   - When deploying, you can use `pnpm hasura migrate apply` and `pnpm hasura metadata apply` to update your production instance.
+   - When deploying, you can use `pnpm remote:apply-migrations` and `pnpm remote:apply-metadata` to update your production instance.
 
 5. **Consistency**:
    The `pnpm hasura metadata inconsistency` command helps you identify and resolve any inconsistencies between your metadata and the actual database schema.
 
 For more detailed information on each command and its usage, you can refer to the [Hasura CLI Commands documentation](https://hasura.io/docs/2.0/hasura-cli/commands/index/).
 
-## Deployment
+### Making Changes
 
-Before making a database or GraphQL schema change to the production Hasura instance, add the following environment variables to the project root `.env` file.
+1. After running `pnpm dev`, launch the Hasura GUI at http://localhost:9695 if it doesn't automatically.
+2. Make changes to the database in the Hasura GUI.
 
+- A `default` database is available for any new infra you would like to add.
+- Otherwise, the `timescaledb` database is used for the DEX data, and points to the running TimescaleDB instance and volume data.
+
+3. A new `up.sql` file will be created in a new folder in `packages/migrations/<default|timescaledb>`. Check that the changes are valid. In some cases, you may need to fill the `down.sql` migration file as well as Hasura may not be able to automatically generate it.
+
+> **NOTE:** After making changes, you might find that it generates a lot of migrations. We can squash them down to a single migration:
+>
+> ```bash
+> # Squash all migrations from version 123 to the latest one:
+> pnpm hasura migrate squash --name "some_name" --from 123
+> ```
+
+### Deployment
+
+Before pushing a database or GraphQL schema change to the production Hasura instance, make sure to set the following environment variables in the project root `.env` file.
+
+```bash
+# The URL of the remote Hasura instance (without the `/v1/graphql` path)
+HASURA_URL=<url>
+# The admin secret of the remote Hasura instance
+HASURA_ADMIN_SECRET=<secret>
 ```
-HASURA_URL=https://tub-graphql.primodium.ai/
-HASURA_ADMIN_SECRET=<Ask Emerson for the secret>
-```
-
-Once the pull request has been approved by another team member and merged into `main`, run the following command in `packages/tub` to apply changes to production:
 
 1. Check the status of the migrations with the following command. Make sure that the migration is not already applied:
 
 ```
-pnpm run db:remote:migrate-status
+pnpm remote:migrate-status
 ```
 
 2. Apply the migrations and metadata to the production instance with the following commands:
 
 ```
-pnpm run db:remote:apply-migrations
-pnpm run db:remote:apply-metadata
+pnpm remote:apply-migrations
+pnpm remote:apply-metadata
 ```
+
+3. If there is any inconsistency between the metadata and the database schema, you can get more details with the following command:
+
+```
+pnpm remote:metadata-ic
+```
+
+### Testing
+
+Testing can be done with a standalone command, which will spin up the database, seed it with faster refresh rates, and run the test suite.
+
+```bash
+pnpm test
+
+# With watch mode
+pnpm test:watch
+
+# With coverage
+pnpm test:coverage
+```
+
+### Benchmarking
+
+Results are stored in `__test__/benchmarks/output/`, with some details for each query benchmarked, as well as a summary of the results. This includes a direct Hasura hit, a warm cache hit, a cold cache hit, and a cache bypass.
+
+```bash
+# Start the database
+pnpm dev:ci
+# Run the benchmarks (which will first seed the database with `n` trades, see `__test__/benchmarks/config.ts`)
+pnpm benchmark
+```
+
+### Metrics/stress-testing
+
+You can run some stress tests with k6, either on the local or the remote instance.
+
+```bash
+# Install k6
+brew install k6
+
+# Run the database
+pnpm dev:ci
+# Run local analysis (seeding, metrics with dashboard and output to file)
+pnpm k6:local
+# or without seeding first
+pnpm k6:local:skip-seed
+# or on the remote database
+pnpm k6:remote
+```
+
+## Details
+
+### Timescale API
+
+#### Reading
+
+The main interfacing with Timescale is done through materialized views and native queries. We can still directly query tables (which is the case for the price history for instance). All of the Timescale API—except for the native queries—is available through the "api" schema.
+
+| Name                             | Type                  | Purpose                                                                                        | Schema                                                                                   |
+| -------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `token_rolling_stats_30min`      | native query          | Get metadata & stats during the last 30 minutes (& 1 minute)                                   | [link](metadata/databases/databases.yaml#L73)                                            |
+| `api.token_rolling_stats_30min`  | materialized view\*\* | Metadata + 30-min & 1-min stats for all tokens                                                 | [link](migrations/timescaledb/1736977737887_combine_rolling_stats_migrations/up.sql#L4)  |
+| `api.token_stats_1h`             | materialized view\*   | Continuously refreshed stats aggregated by mint during the past hour in 1-min buckets          | [link](migrations/timescaledb/1736767809352_token_stats_1h_add/up.sql#L2)                |
+| `api.refresh_history`            | table                 | Refresh history of the `api.token_rolling_stats_30min` view                                    | [link](migrations/timescaledb/1736977737887_combine_rolling_stats_migrations/up.sql#L55) |
+| `api.trade_history`              | table                 | History of token trades with their metadata                                                    | [link](migrations/timescaledb/1733330756404_init/up.sql#L20)                             |
+| `api.trade_history_1min`         | materialized view\*   | Continuously refreshed trades aggregated by mint during the past day in 1-min buckets          | [link](migrations/timescaledb/1733330756404_init/up.sql#L57)                             |
+| `token_candles_history_1min`     | native query          | Get candlestick data with 1-minute buckets                                                     | [link](metadata/databases/databases.yaml#L26)                                            |
+| `api.token_candles_history_1min` | materialized view\*   | Continuously refreshed candlestick-formatted data by mint during the past day in 1-min buckets | [link](migrations/timescaledb/1736357261215_candles_history_1min_add/up.sql#L2)          |
+
+_\* Refreshed through continuous aggregates_
+
+_\*\* Refreshed by calling the `api.refresh_token_rollin_stats_30min` function_
+
+#### Refreshing
+
+The logic flow for efficiently pre-computing the data in the background is as follows:
+
+- The `api.token_rolling_stats_30min` view is refreshed every few seconds from a scheduled job (see how it is done in the [server example](../../examples/server/src/service.ts#L34)). It reads from:
+  - The `api.token_stats_1h` view, which is refreshed every 5 seconds during continuous aggregation. Which reads from:
+    - The `api.trade_history` table, which is updated by the indexer anytime a batch of trades is made (max every 0.5 seconds, can be customized).
+
+If you would like to refresh the `api.token_rolling_stats_30min` view at a frequency lower than 5 seconds, you will need to update the refresh policy of the `api.token_stats_1h` view as well, as it is the source of data for the rolling stats view.
+
+| Name                                   | Type     | Purpose                                          | Schema                                                                                   |
+| -------------------------------------- | -------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `api.refresh_token_rollin_stats_30min` | function | Refresh the `api.token_rolling_stats_30min` view | [link](migrations/timescaledb/1736977737887_combine_rolling_stats_migrations/up.sql#L59) |
+
+### Continuous Aggregates
+
+The continuous aggregates are currently set with the following refresh policies:
+
+| Name                       | Start offset                       | Refresh interval |
+| -------------------------- | ---------------------------------- | ---------------- |
+| `api.token_stats_1h`       | Past hour                          | `5 seconds`      |
+| `api.trade_history_1min`   | Past 24 hours (up to 1 minute ago) | `1 minute`       |
+| `api.candles_history_1min` | Past 24 hours                      | `5 seconds`      |
+
+### Structure
+
+```ml
+__test__ - "Entire test suite with utilities"
+├── benchmarks - "Queries benchmarks and output results"
+├── k6 - "Stress testing suite with k6, including output results"
+├── lib - "Utilities used across the test suite"
+└── unit - "Unit tests (queries, mutations, subscriptions)"
+bin - "Local CLI tools (start the database stack locally)"
+dist - "Compiled files for distribution"
+metadata - "Hasura metadata generated from the local console"
+├── databases - "Database-specific metadata"
+│   │── default - "default database metadata"
+│   └── timescaledb - "timescaledb database metadata"
+migrations - "Database migration files"
+│── default - "default database migrations"
+└── timescaledb - "timescaledb database migrations"
+seeds - "Seed files for each database (currently run for testing locally, can be run on the remote instance as well)"
+└── timescaledb - "timescaledb seed files"
+src - "Source files"
+├── cache - "Fastify cache server & Dockerfile for starting it alongside Redis"
+├── graphql - "GraphQL queries, mutations, subscriptions & types"
+│   └── codegen - "GraphQL types autogenerated from gql.tadata (`pnpm generate:types`)"
+└── index.ts - "Main module for TypeScript, exports the GraphQL client, operations, and their types"
+```
+
+## Contributing
+
+If you wish to contribute to the package, please open an issue first to make sure that this is within the scope of the library, and that it is not already being worked on.
+
+## License
+
+This project is licensed under the MIT License - see [LICENSE](../../LICENSE) for details.

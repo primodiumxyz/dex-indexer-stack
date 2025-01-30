@@ -15,8 +15,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "local:gql": "./bin/start-db.sh",
-    "local:gql:ci": "./bin/start-db.sh --ci"
+    "local:dex-graphql": "./bin/start-db.sh",
+    "local:dex-graphql:ci": "./bin/start-db.sh --ci"
   },
   "files": [
     "bin",
@@ -79,5 +79,8 @@
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "3.0.4",
     "yaml": "^2.6.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

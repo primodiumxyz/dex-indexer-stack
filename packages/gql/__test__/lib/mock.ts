@@ -1,6 +1,7 @@
 import { GqlClient } from "../../src/index";
 import { toPgComposite } from "./common";
 
+/* ---------------------------------- TYPES --------------------------------- */
 export type Token = {
   mint: string;
   name: string;
@@ -36,6 +37,18 @@ interface InsertMockTradeHistoryOptions {
   onProgress?: (inserted: number, total: number) => void;
 }
 
+/* ---------------------------------- FUNCTIONS --------------------------------- */
+/**
+ * Insert mock trade history into the database.
+ *
+ * @param gql - The GQL client
+ * @param options.count - The number of trades to insert (it will generate 5% of this number as tokens)
+ * @param options.from - The minimum date for the trades
+ * @param options.batchSize - The number of trades to insert in each batch
+ * @param options.onProgress - A callback function that is called with the number of trades inserted and the total
+ *   number of trades
+ * @returns The {@link Token} and {@link Trade} that were inserted
+ */
 export const insertMockTradeHistory = async (
   gql: GqlClient,
   options: InsertMockTradeHistoryOptions,
@@ -43,9 +56,11 @@ export const insertMockTradeHistory = async (
   const { count, from, batchSize = 1000, onProgress } = options;
   const { tokens, trades } = getRandomTokensAndTrades(count, from);
 
+  // Create batches of trades to insert
   const batches = Math.ceil(count / batchSize);
   let inserted = 0;
 
+  // Insert the trades in batches
   for (let i = 0; i < batches; i++) {
     const affectedRows = await insertTradeHistory(gql, trades.slice(i * batchSize, (i + 1) * batchSize));
 
@@ -56,8 +71,18 @@ export const insertMockTradeHistory = async (
   return { tokens, trades };
 };
 
+/**
+ * Generate random tokens and trades.
+ *
+ * @param count - The number of trades to generate
+ * @param from - The minimum date for the trades
+ * @returns The {@link Token} and {@link Trade} that were generated
+ */
 export const getRandomTokensAndTrades = (count: number, from: Date): { tokens: Token[]; trades: Trade[] } => {
+  // Calculate the amount of unique tokens to generate
   const tokenMintCount = Math.ceil(count * 0.05);
+
+  // Generate random data for each token
   const tokens: Token[] = Array.from({ length: tokenMintCount }, (_, i) => ({
     mint: getRandomMint(),
     name: `Token ${getLetterIndex(i)}`.slice(0, 255),
@@ -70,6 +95,7 @@ export const getRandomTokensAndTrades = (count: number, from: Date): { tokens: T
     isPumpToken: true,
   }));
 
+  // Generate random trades and assign them to a token
   const trades = Array.from({ length: count }, () => {
     const token = tokens[Math.floor(Math.random() * tokens.length)];
 
@@ -84,6 +110,13 @@ export const getRandomTokensAndTrades = (count: number, from: Date): { tokens: T
   return { tokens, trades };
 };
 
+/**
+ * Insert trades into the database.
+ *
+ * @param gql - The GQL client
+ * @param trades - The trades to insert
+ * @returns The number of trades that were inserted
+ */
 export const insertTradeHistory = async (gql: GqlClient, trades: Trade[]): Promise<number> => {
   const res = await gql.db.InsertTradeHistoryManyMutation({
     trades: trades.map((t) => ({
@@ -112,18 +145,19 @@ export const insertTradeHistory = async (gql: GqlClient, trades: Trade[]): Promi
   return affectedRows;
 };
 
+// Generate a random mint
 const getRandomMint = () => {
   const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
   return Array.from({ length: 44 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
 };
 
-// between 0.000000000001 and 10 (18 decimal places)
+// Generate a random price between 0.000000000001 and 10 (18 decimal places)
 const getRandomPrice = () => Number((Math.random() * 10 + 0.000000000001).toFixed(18));
 
-// Returns a random number between 0.001 and 100,000 (18 decimal places)
+// Generate a random volume between 0.001 and 100,000 (18 decimal places)
 const getRandomVolume = () => Number((Math.random() * 100000 + 0.001).toFixed(18));
 
-// Returns a random date between from and now
+// Generate a random date between from and now
 const getRandomDate = (from: Date) =>
   new Date(from.getTime() + Math.random() * (new Date().getTime() - from.getTime()));
 
@@ -140,6 +174,13 @@ const getLetterIndex = (index: number): string => {
   return columnName;
 };
 
+/**
+ * Generate candles data from an array of trades.
+ *
+ * @param trades - The trades to generate candles from
+ * @param since - The minimum date for the trades
+ * @returns The candles that were generated
+ */
 export const getCandlesFromTrades = (trades: Trade[], since: Date) => {
   // Generate all minute buckets from start to now
   const now = new Date(Math.floor(Date.now() / 60000) * 60000);

@@ -1,15 +1,17 @@
 import fs from "fs";
 
-import { GqlClient } from "../../src";
+import { Queries } from "../../src";
 
+/* ---------------------------------- TYPES --------------------------------- */
 type BeforeHook = () => Promise<void>;
 
-// Get all possible query functions from GqlClient
-export type QueryFnName = keyof GqlClient["db"];
+// Get the name of all defined queries
+export type QueryFnName = keyof Queries;
 
 // Helper to get the result from the operation
-type QueryResult<T extends QueryFnName> = Awaited<ReturnType<GqlClient["db"][T]>>;
+type QueryResult<T extends QueryFnName> = Awaited<ReturnType<Queries[T]>>;
 
+// Options for a performance test
 export interface PerformanceTestOptions<T extends QueryFnName> {
   identifier: string;
   exec: (i: number) => Promise<QueryResult<T>>;
@@ -18,6 +20,7 @@ export interface PerformanceTestOptions<T extends QueryFnName> {
   after?: (result: QueryResult<T>) => void | Promise<void>;
 }
 
+// Metrics for a single query
 export interface BenchmarkMetrics {
   name: string;
   group: string;
@@ -28,14 +31,19 @@ export interface BenchmarkMetrics {
   stdDev: number;
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                BENCHMARKING                                */
-/* -------------------------------------------------------------------------- */
-
+/* ------------------------------ BENCHMARKING ------------------------------ */
+/**
+ * Benchmark a query.
+ *
+ * Note: We can't pass the query function here directly, because we need to perform each query _with a separate client_.
+ * Otherwise, the client will internally consider all similar queries in the same test to be the same (identical
+ * operation id), no matter how much we try to separate them, and cache them together.
+ *
+ * @param options - The {@link PerformanceTestOptions} for the benchmark
+ * @returns The {@link BenchmarkMetrics} for the benchmark
+ */
 export const benchmark = async <T extends QueryFnName>({
   identifier,
-  // We cannot pass the query function here directly, because we need to perform each query _with a separate client_
-  // Otherwise, it will consider all similar queries in the same test to be the same query, no matter how much we try to separate them, and cache them together
   exec,
   iterations,
   before,
@@ -44,12 +52,15 @@ export const benchmark = async <T extends QueryFnName>({
   const latencyMeasurements: number[] = [];
 
   for (let i = 0; i < iterations; i++) {
+    // Run the pre-hook if provided
     if (before) await before();
 
+    // Run the query and measure its time
     const start = performance.now();
     const result = await exec(i);
     latencyMeasurements.push(performance.now() - start);
 
+    // Run the post-hook if provided
     if (after && result) {
       const afterResult = after(result);
       if (afterResult instanceof Promise) await afterResult;
@@ -62,6 +73,7 @@ export const benchmark = async <T extends QueryFnName>({
   };
 };
 
+// Calculate relevant statistics for a set of measurements
 const calculateStats = (measurements: number[]): Omit<BenchmarkMetrics, "name" | "group"> => {
   return {
     avg: average(measurements),
@@ -72,16 +84,19 @@ const calculateStats = (measurements: number[]): Omit<BenchmarkMetrics, "name" |
   };
 };
 
+// Calculate the average value of a set of measurements
 const average = (measurements: number[]) => {
   return measurements.reduce((sum, measurement) => sum + measurement, 0) / measurements.length;
 };
 
+// Calculate the p-th percentile of a set of measurements
 const percentile = (measurements: number[], p: number) => {
   const sorted = measurements.sort((a, b) => a - b);
   const index = (p / 100) * (sorted.length - 1);
   return sorted[Math.round(index)];
 };
 
+// Calculate the standard deviation of a set of measurements
 const standardDeviation = (measurements: number[]) => {
   const avg = average(measurements);
   const variance =
@@ -89,10 +104,13 @@ const standardDeviation = (measurements: number[]) => {
   return Math.sqrt(variance);
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                    LOGS                                    */
-/* -------------------------------------------------------------------------- */
-
+/* ------------------------------ LOGS ---------------------------------- */
+/**
+ * Format a set of {@link BenchmarkMetrics} as a human-readable report.
+ *
+ * @param metrics - The {@link BenchmarkMetrics} to format
+ * @returns The formatted report
+ */
 const formatMetricsReport = (metrics: BenchmarkMetrics[]): string => {
   const lines: string[] = [];
   const sortedMetrics = [...metrics].sort((a, b) => a.avg - b.avg);
@@ -148,6 +166,11 @@ const formatMetricsReport = (metrics: BenchmarkMetrics[]): string => {
   return lines.join("\n");
 };
 
+/**
+ * Log a set of {@link BenchmarkMetrics} to the console.
+ *
+ * @param metrics - The {@link BenchmarkMetrics} to log
+ */
 export const logMetrics = (metrics: BenchmarkMetrics[]) => {
   const groupedMetrics = metrics.reduce((acc, metric) => {
     acc[metric.group] = [...(acc[metric.group] || []), metric];
@@ -159,6 +182,12 @@ export const logMetrics = (metrics: BenchmarkMetrics[]) => {
   }
 };
 
+/**
+ * Write a set of {@link BenchmarkMetrics} to files.
+ *
+ * @param metrics - The {@link BenchmarkMetrics} to write
+ * @param filename - The base filename for the output files
+ */
 export const writeMetricsToFile = (metrics: BenchmarkMetrics[], filename: string) => {
   // Group metrics
   const groupedMetrics = metrics.reduce(
@@ -186,6 +215,7 @@ export const writeMetricsToFile = (metrics: BenchmarkMetrics[], filename: string
   }
 };
 
+/** A summary of the benchmark results for a single query. */
 interface QuerySummary {
   queryName: string;
   directHasura: number;
@@ -195,6 +225,7 @@ interface QuerySummary {
   improvement: number;
 }
 
+// Analyze the benchmark results and generate a summary report.
 const analyzeBenchmarks = () => {
   const outputDir = "__test__/benchmarks/output";
   const jsonFiles = fs.readdirSync(outputDir).filter((f) => f.startsWith("Get") && f.endsWith(".json"));

@@ -15,11 +15,12 @@ describe("GetBulkTokenMetadata benchmarks", () => {
     if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success)
       throw new Error("Error refreshing token rolling stats");
 
+    // Get all tokens
     const allTokensRes = await client.db.GetAllTokensQuery();
     if (allTokensRes.error || !allTokensRes.data?.token_rolling_stats_30min) throw new Error("No tokens found");
     const tokens = allTokensRes.data?.token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
 
-    // Create RANDOM batches of 20 tokens for each iteration
+    // Create random batches of 20 tokens for each iteration
     for (let i = 0; i < ITERATIONS; i++) {
       tokenBatches.push(tokens.sort(() => Math.random() - 0.5).slice(i * 20, (i + 1) * 20));
     }

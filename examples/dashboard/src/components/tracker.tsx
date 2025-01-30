@@ -4,6 +4,11 @@ import { TokenChart } from "@/components/token-chart";
 import { TokensTable } from "@/components/tokens-table";
 import { Token } from "@/lib/types";
 
+/**
+ * Component to display the tracker, which is the entire content of the dashboard
+ *
+ * @returns The tracker component
+ */
 export const Tracker = () => {
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
 

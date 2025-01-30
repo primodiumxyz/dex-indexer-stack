@@ -1,5 +1,6 @@
-import { afterAll, afterEach, beforeAll } from "vitest";
+import { beforeAll } from "vitest";
 
+// Wait for the Hasura service to be ready before running tests
 beforeAll(async () => {
   const maxAttempts = 20;
   const retryInterval = 5000; // 1 second
@@ -35,11 +36,3 @@ beforeAll(async () => {
 
   throw new Error("Hasura service is not available. Please ensure it's running with `pnpm dev` and try again.");
 }, 1000 * 60);
-
-afterAll(() => {
-  // Add any global teardown here
-});
-
-afterEach(() => {
-  // Clean up after each test
-});

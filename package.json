@@ -1,6 +1,12 @@
 {
   "name": "@primodiumxyz/dex-indexer-stack",
+  "description": "A full-stack for indexing DEX trades on Solana using Yellowstone GRPC and Timescale.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primodiumxyz/dex-indexer-stack"
+  },
+  "license": "MIT",
   "scripts": {
     "build": "pnpm --filter '@primodiumxyz/dex-graphql' run build && pnpm --filter '@primodiumxyz/dex-indexer' run build",
     "dev": "pnpm run dev:teardown && run-pty % pnpm dev:gql % pnpm dev:indexer",

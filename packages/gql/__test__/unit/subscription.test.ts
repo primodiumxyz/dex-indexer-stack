@@ -13,18 +13,20 @@ describe("subscription tests", () => {
     await refreshTokenRollingStats30Min();
   });
 
+  // Delete all seeded data after each test
   afterEach(async () => {
     const res = await gql.db.DeleteTradeHistoryManyMutation({ mints: Array.from(new Set(tokenMints)) });
     assert(!res.error, res.error?.message);
     tokenMints = [];
   });
 
-  it("GetTopTokensByVolumeQuery", async () => {
-    // Subscribe to the top tokens by volume
+  it("GetTopTokensByVolumeSubscription", async () => {
+    // Subscribe to the top 10 tokens by 30min volume
     let topTokens: { mint: string; volumeUsd: number }[] = [];
     const subscription = gql.db.GetTopTokensByVolumeSubscription({ limit: 10 }).subscribe((data) => {
       assert(!data.error, data.error?.message);
 
+      // Update tokens every time the subscription is updated
       topTokens =
         data.data?.token_rolling_stats_30min.map((token) => ({
           mint: token.mint,
@@ -41,6 +43,7 @@ describe("subscription tests", () => {
     await insertTradeHistory(gql, [sortedTrades[0]]);
     await waitForSubscriptionUpdate(() => topTokens.length > 0);
 
+    // Assert that this token is the top token by volume (it's the only token)
     expect(topTokens[0].mint).toBe(sortedTrades[0].mint);
     expect(topTokens[0].volumeUsd).toBe(sortedTrades[0].volumeUsd);
 
@@ -48,6 +51,7 @@ describe("subscription tests", () => {
     await insertTradeHistory(gql, [sortedTrades[1]]);
     await waitForSubscriptionUpdate(() => topTokens.length > 1);
 
+    // Assert that this token is the top token by volume (it should be higher ranked than the first token)
     expect(topTokens[0].mint).toBe(sortedTrades[1].mint);
     expect(topTokens[0].volumeUsd).toBe(sortedTrades[1].volumeUsd);
     expect(topTokens[1].mint).toBe(sortedTrades[0].mint);
@@ -57,7 +61,8 @@ describe("subscription tests", () => {
     subscription.unsubscribe();
   });
 
-  it("GetTokenMetadataQuery", async () => {
+  it("GetTokenMetadataSubscription", async () => {
+    // Get a random token and trade
     const { tokens, trades } = getRandomTokensAndTrades(1, new Date());
     const metadata = tokens[0];
     const trade = trades[0];
@@ -70,6 +75,7 @@ describe("subscription tests", () => {
       const res = data.data?.token_rolling_stats_30min[0];
       if (!res) return;
 
+      // Update the token metadata anytime it changes
       token = {
         mint: res.mint,
         name: res.name,
@@ -83,10 +89,11 @@ describe("subscription tests", () => {
       };
     });
 
-    // Insert the expected trade and refresh the view
+    // Insert the expected trade and wait for updates
     await insertTradeHistory(gql, [trade]);
     await waitForSubscriptionUpdate(() => !!token);
 
+    // Assert that the token metadata was updated
     assert(token, "token not updated");
     expect(token.mint).toBe(metadata.mint);
     expect(token.name).toBe(metadata.name);
@@ -98,7 +105,7 @@ describe("subscription tests", () => {
     expect(token.externalUrl).toBe(metadata.externalUrl);
     expect(token.isPumpToken).toBe(metadata.isPumpToken);
 
-    // Update the token metadata
+    // Change the token metadata and refresh the view
     const cachedToken = token;
     await insertTradeHistory(gql, [
       {
@@ -109,7 +116,7 @@ describe("subscription tests", () => {
     ]);
     await waitForSubscriptionUpdate(() => token !== cachedToken);
 
-    // Token metadata should be updated, with only the supply changed
+    // Assert that the token metadata was updated, with only the supply changed
     expect(token.mint).toBe(metadata.mint);
     expect(token.name).toBe(metadata.name);
     expect(token.symbol).toBe(metadata.symbol);
@@ -125,7 +132,7 @@ describe("subscription tests", () => {
   });
 
   it("GetBulkTokenMetadataSubscription", async () => {
-    // Create multiple random tokens and trades
+    // Create 3 random tokens and trades
     const { tokens: initialTokens, trades: initialTrades } = getRandomTokensAndTrades(3, new Date());
 
     // Track received tokens from subscription
@@ -137,6 +144,7 @@ describe("subscription tests", () => {
       .subscribe((data) => {
         assert(!data.error, data.error?.message);
 
+        // Update the received tokens anytime the subscription is updated
         receivedTokens =
           data.data?.token_rolling_stats_30min.map((token) => ({
             mint: token.mint,
@@ -162,17 +170,20 @@ describe("subscription tests", () => {
     await insertTradeHistory(gql, initialTrades);
     await waitForSubscriptionUpdate(() => receivedTokens.length > 0);
 
-    // Verify initial state
+    // Assert that the initial state is correct and sort expected & received tokens
     expect(receivedTokens.length).toBe(initialTokens.length);
     receivedTokens.sort((a, b) => a.mint.localeCompare(b.mint));
     initialTokens.sort((a, b) => a.mint.localeCompare(b.mint));
 
+    // Assert that the received tokens are correct
     receivedTokens.forEach((token, i) => {
       const expectedToken = initialTokens[i];
       expect(token.mint).toBe(expectedToken.mint);
       expect(token.name).toBe(expectedToken.name);
       expect(token.supply).toBe(expectedToken.supply);
-      // ... other metadata checks
+      expect(token.imageUri).toBe(expectedToken.imageUri);
+      expect(token.externalUrl).toBe(expectedToken.externalUrl);
+      expect(token.isPumpToken).toBe(expectedToken.isPumpToken);
     });
 
     // Update one token's metadata
@@ -182,16 +193,17 @@ describe("subscription tests", () => {
       createdAt: new Date(), // ensure newer timestamp
     };
 
+    // Insert the trade with the new metadata and refresh the view
     const cachedReceivedTokens = receivedTokens;
     await insertTradeHistory(gql, [updatedTrade]);
     await waitForSubscriptionUpdate(() => receivedTokens !== cachedReceivedTokens);
 
-    // Find the updated token in received tokens
+    // Assert that the updated token is correct
     const updatedToken = receivedTokens.find((t) => t.mint === initialTrades[0].mint);
     assert(updatedToken, "Updated token not found");
     expect(updatedToken.supply).toBe(9999);
 
-    // Other tokens should remain unchanged
+    // Assert that the other tokens remain unchanged
     receivedTokens
       .filter((t) => t.mint !== initialTrades[0].mint)
       .forEach((token) => {
@@ -204,7 +216,8 @@ describe("subscription tests", () => {
     subscription.unsubscribe();
   });
 
-  it("GetTokenPricesSinceQuery", async () => {
+  it("GetTokenPricesSinceSubscription", async () => {
+    // Get a random token and 2 trades
     const { trades } = getRandomTokensAndTrades(2, new Date());
     const tokenMint = trades[0].mint;
 
@@ -218,24 +231,27 @@ describe("subscription tests", () => {
         const res = data.data?.api_trade_history;
         if (!res) return;
 
+        // Update the prices anytime the subscription is updated
         prices = res.map((price) => ({
           priceUsd: Number(price.token_price_usd),
           volumeUsd: Number(price.volume_usd),
         }));
       });
 
-    // Insert the first trade and refresh the view
+    // Insert the first trade and wait for updates
     await insertTradeHistory(gql, [trades[0]]);
     await waitForSubscriptionUpdate(() => prices.length > 0);
 
+    // Assert that the prices were updated
     assert(prices.length > 0, "prices not updated");
     expect(prices[0].priceUsd).toBe(trades[0].priceUsd);
     expect(prices[0].volumeUsd).toBe(trades[0].volumeUsd);
 
-    // Insert the next trade and refresh the view
+    // Insert the next trade and wait for updates
     await insertTradeHistory(gql, [{ ...trades[1], mint: tokenMint, createdAt: new Date() }]);
     await waitForSubscriptionUpdate(() => prices.length > 1);
 
+    // Assert that the prices were updated correctly
     assert(prices.length > 1, "prices not updated");
     expect(prices[0].priceUsd).toBeCloseTo(trades[0].priceUsd, 8);
     expect(prices[0].volumeUsd).toBeCloseTo(trades[0].volumeUsd, 8);
@@ -246,7 +262,8 @@ describe("subscription tests", () => {
     subscription.unsubscribe();
   });
 
-  it("GetTokenCandlesSinceQuery", async () => {
+  it("GetTokenCandlesSinceSubscription", async () => {
+    // Get a random token and 10 trades for the last 10 minutes
     const since = new Date(Math.floor(Date.now() / 60000) * 60000);
     since.setMinutes(since.getMinutes() - 10);
     const subSince = new Date(since.getTime() - 60 * 1000);
@@ -263,6 +280,7 @@ describe("subscription tests", () => {
         const res = data.data?.token_candles_history_1min;
         if (!res) return;
 
+        // Update the candles anytime the subscription is updated
         candles = res.map((c) => ({
           o: Number(c.open_price_usd),
           c: Number(c.close_price_usd),
@@ -274,11 +292,12 @@ describe("subscription tests", () => {
         }));
       });
 
-    // Insert the first trade and refresh the view
+    // Insert the first trade and wait for updates
     await insertTradeHistory(gql, [trades[0]]);
     await waitForSubscriptionUpdate(() => candles.some((c) => c.v > 0));
 
-    // We'll have empty candles because we're subscribing to the last 20 minutes
+    // Assert that the candles were updated
+    // We'll have empty candles because we're subscribing to the last 20 minutes, so better check the last candle
     const candle = candles[candles.length - 1];
     assert(candle, "candle not updated");
     expect(candle.o).toBeCloseTo(trades[0].priceUsd, 8);
@@ -288,9 +307,10 @@ describe("subscription tests", () => {
     expect(candle.v).toBeCloseTo(trades[0].volumeUsd, 8);
     expect(candle.t).toBe(true);
 
+    // Get the expected candles from the trades
     const expectedCandles = getCandlesFromTrades(trades, subSince).filter((c) => c.open_price_usd !== null);
 
-    // Insert the rest of the trades and refresh the view
+    // Insert the rest of the trades and wait for updates
     await insertTradeHistory(gql, trades.slice(1));
     await waitForSubscriptionUpdate(() => {
       // Check that at least two expected candles with volume are present
@@ -298,6 +318,7 @@ describe("subscription tests", () => {
       return candles.filter((c) => c.v > 0).length >= expectedCandlesWithVolume.length;
     });
 
+    // Assert that the candles were updated correctly
     candles
       .sort((a, b) => b.bucket.getTime() - a.bucket.getTime())
       .forEach((candle, i) => {

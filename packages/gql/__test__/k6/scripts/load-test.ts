@@ -3,6 +3,7 @@ import { SharedArray } from "k6/data";
 import http from "k6/http";
 import { Gauge, Rate, Trend } from "k6/metrics";
 
+// Stress testing stages
 const STRESS_STAGES = [
   { duration: "1m", target: 1000 }, // Ramp up to 1,000 users over 1 minute
   { duration: "2m", target: 1000 }, // Stay at 1,000 users for 2 minutes
@@ -43,6 +44,7 @@ export const options = {
   thresholds: STRESS_THRESHOLDS,
 };
 
+// Queries to run
 const QUERIES = {
   topTokens: `
     query GetTopTokensByVolume {
@@ -68,6 +70,12 @@ const QUERIES = {
   `,
 };
 
+/**
+ * Get a metric from Prometheus.
+ *
+ * @param query - The Prometheus query to run
+ * @returns The metric value
+ */
 function getPrometheusMetric(query: string): number {
   try {
     const response = http.get(`http://localhost:9090/api/v1/query?query=${encodeURIComponent(query)}`, {
@@ -108,6 +116,7 @@ function getPrometheusMetric(query: string): number {
   }
 }
 
+/** The main function for the load test. */
 export default function () {
   try {
     const startTime = new Date().getTime();
@@ -116,10 +125,11 @@ export default function () {
       "x-hasura-admin-secret": __ENV.HASURA_ADMIN_SECRET ?? "password",
     };
 
-    // Run GraphQL query first
+    // Run a random GraphQL query first among the provided queries
     const queryType = Math.random() > 0.5 ? "topTokens" : "tokenPrices";
     const payload = {
       query: QUERIES[queryType],
+      // Populate the query arguments with random values
       variables:
         queryType === "tokenPrices"
           ? {
@@ -157,6 +167,7 @@ export default function () {
       errorRate.add(1);
     }
 
+    // If we're running locally, collect metrics from Prometheus
     if (__ENV.ENV === "local") {
       // PostgreSQL (Hasura) metrics with correct job and instance labels
       const pgMemory = getPrometheusMetric('process_resident_memory_bytes{job="postgres"}');

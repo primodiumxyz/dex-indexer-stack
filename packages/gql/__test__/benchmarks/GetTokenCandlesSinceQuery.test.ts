@@ -4,8 +4,8 @@ import { benchmark, BenchmarkMetrics, logMetrics, writeMetricsToFile } from "../
 import { clearCache, createClientCacheBypass, createClientCached, createClientNoCache } from "../lib/common";
 import { ITERATIONS } from "./config";
 
-describe("GetBulkTokenLiveData benchmarks", () => {
-  const tokenBatches: string[][] = [];
+describe("GetTokenCandlesSince benchmarks", () => {
+  let tokens: string[] = [];
   const metrics: BenchmarkMetrics[] = [];
 
   beforeAll(async () => {
@@ -15,28 +15,25 @@ describe("GetBulkTokenLiveData benchmarks", () => {
     if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success)
       throw new Error("Error refreshing token rolling stats");
 
+    // Get all tokens
     const allTokensRes = await client.db.GetAllTokensQuery();
     if (allTokensRes.error || !allTokensRes.data?.token_rolling_stats_30min) throw new Error("No tokens found");
-    const tokens = allTokensRes.data?.token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
-
-    // Create RANDOM batches of 20 tokens for each iteration
-    for (let i = 0; i < ITERATIONS; i++) {
-      tokenBatches.push(tokens.sort(() => Math.random() - 0.5).slice(i * 20, (i + 1) * 20));
-    }
+    tokens = allTokensRes.data?.token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
   });
 
   it("should measure direct Hasura performance", async () => {
-    const metric = await benchmark<"GetBulkTokenLiveDataQuery">({
+    const metric = await benchmark<"GetTokenCandlesSinceQuery">({
       identifier: "Direct Hasura hit",
       exec: async (i) => {
         const client = await createClientNoCache();
-        return await client.db.GetBulkTokenLiveDataQuery({
-          tokens: tokenBatches[i],
+        return await client.db.GetTokenCandlesSinceQuery({
+          token: tokens[i],
+          since: new Date(Date.now() - 1000 * 60 * 60 * 30), // 30min ago
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
+        if (res.error) throw new Error("Error or no tokens found");
       },
     });
 
@@ -47,23 +44,24 @@ describe("GetBulkTokenLiveData benchmarks", () => {
     // Cache warmup
     for (let i = 0; i < ITERATIONS; i++) {
       const client = await createClientCached();
-      await client.db.GetBulkTokenLiveDataQuery({
-        tokens: tokenBatches[i],
+      await client.db.GetTokenCandlesSinceQuery({
+        token: tokens[i],
+        since: new Date(Date.now() - 1000 * 60 * 60 * 30), // 30min ago
       });
     }
 
-    const metric = await benchmark<"GetBulkTokenLiveDataQuery">({
+    const metric = await benchmark<"GetTokenCandlesSinceQuery">({
       identifier: "Warm cache hit",
       exec: async (i) => {
         const client = await createClientCached();
 
-        return await client.db.GetBulkTokenLiveDataQuery({
-          tokens: tokenBatches[i],
+        return await client.db.GetTokenCandlesSinceQuery({
+          token: tokens[i],
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
+        if (res.error) throw new Error("Error or no tokens found");
       },
     });
 
@@ -71,19 +69,20 @@ describe("GetBulkTokenLiveData benchmarks", () => {
   });
 
   it("should measure cold cache performance", async () => {
-    const metric = await benchmark<"GetBulkTokenLiveDataQuery">({
+    const metric = await benchmark<"GetTokenCandlesSinceQuery">({
       identifier: "Cold cache hit",
       exec: async (i) => {
         const client = await createClientCached();
 
-        return await client.db.GetBulkTokenLiveDataQuery({
-          tokens: tokenBatches[i],
+        return await client.db.GetTokenCandlesSinceQuery({
+          token: tokens[i],
+          since: new Date(Date.now() - 1000 * 60 * 60 * 30), // 30min ago
         });
       },
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
+        if (res.error) throw new Error("Error or no tokens found");
       },
     });
 
@@ -91,17 +90,18 @@ describe("GetBulkTokenLiveData benchmarks", () => {
   });
 
   it("should measure bypassing cache performance", async () => {
-    const metric = await benchmark<"GetBulkTokenLiveDataQuery">({
+    const metric = await benchmark<"GetTokenCandlesSinceQuery">({
       identifier: "Bypassing cache",
       exec: async (i) => {
         const client = await createClientCacheBypass();
-        return await client.db.GetBulkTokenLiveDataQuery({
-          tokens: tokenBatches[i],
+        return await client.db.GetTokenCandlesSinceQuery({
+          token: tokens[i],
+          since: new Date(Date.now() - 1000 * 60 * 60 * 30), // 30min ago
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
+        if (res.error) throw new Error("Error or no tokens found");
       },
     });
 
@@ -110,6 +110,6 @@ describe("GetBulkTokenLiveData benchmarks", () => {
 
   afterAll(() => {
     logMetrics(metrics);
-    writeMetricsToFile(metrics, "GetBulkTokenLiveData");
+    writeMetricsToFile(metrics, "GetTokenCandlesSince");
   });
 });
