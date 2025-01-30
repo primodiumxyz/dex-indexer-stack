@@ -97,11 +97,11 @@ All of them can be left empty if you are running the stack locally.
 2. Run
 
 ```sh
-local:dex-graphql
+local-dex-graphql
 # or without the local Hasura console
-local:dex-graphql:ci
+local-dex-graphql:ci
 # or specify the path to your .env file (install @dotenvx/dotenvx first)
-dotenvx run -f ./path/to/.env --quiet -- local:dex-graphql
+dotenvx run -f ./path/to/.env --quiet -- local-dex-graphql
 ```
 
 ## Usage

@@ -15,10 +15,11 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "local:dex-graphql": "./bin/start-db.sh",
-    "local:dex-graphql:ci": "./bin/start-db.sh --ci"
+    "local-dex-graphql": "./bin/start-db.sh",
+    "local-dex-graphql:ci": "./bin/start-db.sh --ci"
   },
   "files": [
+    "src/cache/Dockerfile",
     "bin",
     "dist",
     "Dockerfile",
