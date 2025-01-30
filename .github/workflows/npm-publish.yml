@@ -23,7 +23,7 @@ jobs:
         uses: ./.github/actions/build
 
       - name: Release
-        if: github.ref == 'refs/heads/main' # Only run release on main branch
+        # if: github.ref == 'refs/heads/main' # Only run release on main branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
