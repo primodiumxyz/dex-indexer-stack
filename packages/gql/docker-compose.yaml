@@ -84,8 +84,8 @@ services:
   # Redis instance for caching GraphQL queries
   graphql-cache:
     build:
-      context: ./src/cache
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: src/cache/Dockerfile
     ports:
       - "8090:8090"
     environment:
