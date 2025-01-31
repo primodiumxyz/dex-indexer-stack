@@ -84,7 +84,7 @@ services:
   # Redis instance for caching GraphQL queries
   graphql-cache:
     build:
-      # need the full workspace context to copy the lockfile
+      # need the full workspace context locally to copy the lockfile
       context: ../../
       dockerfile: packages/gql/src/cache/Dockerfile
     ports:
