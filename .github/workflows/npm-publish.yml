@@ -27,8 +27,7 @@ jobs:
         working-directory: packages/gql
         run: |
           # Replace the build section with the published image
-          sed -i '/    build:/,/      dockerfile:.*/ c\    image: primodiumxyz\/graphql-cache:main' docker-compose.yaml
-
+          sed -i '/    build:/,/      dockerfile:.*/ c\    image: ghcr.io/primodiumxyz/sdi-hasura-cache:main' docker-compose.yaml
       - name: Release GQL Package
         if: github.ref == 'refs/heads/main'
         env:
