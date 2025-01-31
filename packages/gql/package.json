@@ -19,10 +19,8 @@
     "local-dex-graphql:ci": "./bin/start-db.sh --ci"
   },
   "files": [
-    "src/cache/Dockerfile",
     "bin",
     "dist",
-    "Dockerfile",
     "docker-compose.yaml",
     ".dockerignore"
   ],

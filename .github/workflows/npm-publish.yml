@@ -22,6 +22,13 @@ jobs:
       - name: Build
         uses: ./.github/actions/build
 
+      - name: Update GQL Workspace Dependencies
+        if: github.ref == 'refs/heads/main'
+        working-directory: packages/gql
+        run: |
+          # Replace the build section with the published image
+          sed -i '/    build:/,/      dockerfile:.*/ c\    image: primodiumxyz\/graphql-cache:main' docker-compose.yaml
+
       - name: Release GQL Package
         if: github.ref == 'refs/heads/main'
         env:
