@@ -143,6 +143,24 @@ export const GetTokenPricesSinceSubscription = graphql(`
 `);
 
 /**
+ * Subscribes to the most recent trade price for a single token.
+ *
+ * @param token - The mint address of the token
+ * @returns The most recent trade price for the token
+ *
+ *   - `token_price_usd` - The price of the token in USD
+ *   - `created_at` - The timestamp of the trade
+ */
+export const GetRecentTokenPriceSubscription = graphql(`
+  subscription SubRecentTokenPrice($token: String!) {
+    api_trade_history(where: { token_mint: { _eq: $token } }, order_by: { created_at: desc }, limit: 1) {
+      token_price_usd
+      created_at
+    }
+  }
+`);
+
+/**
  * Subscribes to the candle history for a single token since a given time.
  *
  * @param token - The mint address of the token
